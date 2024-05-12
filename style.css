@@ -47,6 +47,10 @@
   }
 }
 
+#canvas {
+  position: relative;
+}
+
 .square {
   position: relative;
   width: 20px;
@@ -72,4 +76,14 @@
   height: 20px;
   border: 1.5px solid white;
   border-radius: 100%;
+}
+
+.rect {
+  position: absolute;
+  border: 1px solid blue;
+}
+
+.rectShape {
+  border: 1px solid skyblue;
+  border-radius: 2px;
 }
