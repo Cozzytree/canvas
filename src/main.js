@@ -1,9 +1,8 @@
 "use strict";
-import "./text.js";
 
+export const canvas = document.getElementById("canvas");
 const newCircle = document.getElementById("newCircle");
 const setText = document.getElementById("Text");
-export const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 const newRect = document.getElementById("newRect");
 
@@ -42,25 +41,44 @@ export class Shapes {
       rectArray.forEach((rect) => (rect.isActive = false));
       circleArray.forEach((circle) => (circle.isActive = false));
 
+      let circle = null;
+      let square = null;
+
       // Check if the click is within any rectangle
-      for (const [_, rect] of rectArray) {
+      for (const [key, rect] of rectArray) {
         if (
           clickX >= rect.x &&
           clickX <= rect.x + rect.width &&
           clickY >= rect.y &&
           clickY <= rect.y + rect.height
         ) {
-          rect.isActive = true;
+          square = key;
           break;
-          // If a rectangle is found, break the loop
         }
       }
-      for (const [_, arc] of circleArray) {
-        const isInside = Math.sqrt(
-          (clickX - arc.x) ** 2 + (clickY - arc.y) ** 2
-        );
-        if (isInside < arc.xRadius && isInside < arc.yRadius) {
-          arc.isActive = true;
+      for (const [key, arc] of circleArray) {
+        if (
+          clickX > arc.x - arc.xRadius &&
+          clickX <= arc.x + arc.xRadius &&
+          clickY >= arc.y - arc.yRadius &&
+          clickY <= arc.y + arc.yRadius
+        ) {
+          circle = key;
+          break;
+        }
+      }
+
+      if (circleArray.get(circle) && !rectArray.get(square)) {
+        circleArray.get(circle).isActive = true;
+      } else if (!circleArray.get(circle) && rectArray.get(square)) {
+        rectArray.get(square).isActive = true;
+      } else if (circle && square) {
+        const s = rectArray.get(square);
+        const c = circleArray.get(circle);
+        if (s.x < c.x - c.xRadius && s.x + s.width > c.x + c.xRadius) {
+          c.isActive = true;
+        } else {
+          s.isActive = true;
         }
       }
 
@@ -207,20 +225,20 @@ export class Shapes {
           2 * Math.PI
         );
         context.fill();
-        //top Middle
-        context.beginPath();
-        context.arc(
-          (sphere.x -
-            sphere.xRadius -
-            dotRadius +
-            (sphere.x + sphere.xRadius + dotRadius)) *
-            0.5,
-          sphere.y - sphere.yRadius - dotRadius,
-          dotRadius,
-          0,
-          2 * Math.PI
-        );
-        context.fill();
+        // //top Middle
+        // context.beginPath();
+        // context.arc(
+        //   (sphere.x -
+        //     sphere.xRadius -
+        //     dotRadius +
+        //     (sphere.x + sphere.xRadius + dotRadius)) *
+        //     0.5,
+        //   sphere.y - sphere.yRadius - dotRadius,
+        //   dotRadius,
+        //   0,
+        //   2 * Math.PI
+        // );
+        // context.fill();
 
         // top right
         context.beginPath();
@@ -233,22 +251,22 @@ export class Shapes {
         );
         context.fill();
 
-        //right middle
-        context.beginPath();
-        context.arc(
-          sphere.x + sphere.xRadius + dotRadius,
-          (sphere.y -
-            sphere.yRadius -
-            dotRadius +
-            sphere.y +
-            sphere.yRadius +
-            dotRadius) *
-            0.5,
-          dotRadius,
-          0,
-          2 * Math.PI
-        );
-        context.fill();
+        // //right middle
+        // context.beginPath();
+        // context.arc(
+        //   sphere.x + sphere.xRadius + dotRadius,
+        //   (sphere.y -
+        //     sphere.yRadius -
+        //     dotRadius +
+        //     sphere.y +
+        //     sphere.yRadius +
+        //     dotRadius) *
+        //     0.5,
+        //   dotRadius,
+        //   0,
+        //   2 * Math.PI
+        // );
+        // context.fill();
 
         //bottom right
         context.beginPath();
@@ -262,19 +280,19 @@ export class Shapes {
         context.fill();
 
         //bottom mid
-        context.beginPath();
-        context.arc(
-          (sphere.x -
-            sphere.xRadius -
-            dotRadius +
-            (sphere.x + sphere.xRadius + dotRadius)) *
-            0.5,
-          sphere.y + sphere.yRadius + dotRadius,
-          dotRadius,
-          0,
-          2 * Math.PI
-        );
-        context.fill();
+        // context.beginPath();
+        // context.arc(
+        //   (sphere.x -
+        //     sphere.xRadius -
+        //     dotRadius +
+        //     (sphere.x + sphere.xRadius + dotRadius)) *
+        //     0.5,
+        //   sphere.y + sphere.yRadius + dotRadius,
+        //   dotRadius,
+        //   0,
+        //   2 * Math.PI
+        // );
+        // context.fill();
 
         //bottom left
         context.beginPath();
@@ -288,21 +306,21 @@ export class Shapes {
         context.fill();
 
         //left mid
-        context.beginPath();
-        context.arc(
-          sphere.x - sphere.xRadius - dotRadius,
-          (sphere.y -
-            sphere.yRadius -
-            dotRadius +
-            sphere.y +
-            sphere.yRadius +
-            dotRadius) *
-            0.5,
-          dotRadius,
-          0,
-          2 * Math.PI
-        );
-        context.fill();
+        // context.beginPath();
+        // context.arc(
+        //   sphere.x - sphere.xRadius - dotRadius,
+        //   (sphere.y -
+        //     sphere.yRadius -
+        //     dotRadius +
+        //     sphere.y +
+        //     sphere.yRadius +
+        //     dotRadius) *
+        //     0.5,
+        //   dotRadius,
+        //   0,
+        //   2 * Math.PI
+        // );
+        // context.fill();
 
         context.restore(); // Restore the previous drawing state
       }
@@ -447,13 +465,13 @@ class Rectangle extends Shapes {
       if (rect.horizontelResizing) {
         const oldPosition = rect.x + rect.width;
         const newX = mouseX > rect.x ? rect.x : mouseX;
+        console.log(rect.x, rect.x + rect.width);
 
-        rect.width = Math.abs(rect.x - mouseX); // Adjust width when mouseX is below rect.x
+        rect.width = Math.abs(mouseX - rect.x); // Adjust width when mouseX is below rect.x
 
         // rect.width = Math.abs(mouseX - rect.x); // Adjust width normally when mouseX is to the right
 
         rect.x = newX;
-        console.log("X", rect.x, "mousex", mouseX, "old", oldPosition);
         rect.draw();
       }
 
@@ -581,9 +599,9 @@ class Circle extends Shapes {
       //full resize
       if (
         // Top-left corner
-        (mouseX > forXless - width &&
+        (mouseX >= forXless - width &&
           mouseX <= forXless &&
-          mouseY > forYless - width &&
+          mouseY >= forYless - width &&
           mouseY <= forYless) ||
         // Top-right corner
         (mouseX >= forXmore &&
@@ -597,9 +615,9 @@ class Circle extends Shapes {
           mouseY >= forYmore - width) ||
         // Bottom-right corner
         (mouseX >= forXmore - width &&
-          mouseX < forXmore &&
-          mouseY < forYmore &&
-          mouseY >= forYmore - width)
+          mouseX <= forXmore &&
+          mouseY >= forYmore - width &&
+          mouseY <= forYmore)
       ) {
         arc.isResizing = true;
       }
@@ -610,10 +628,6 @@ class Circle extends Shapes {
     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
     circleArray.forEach((arc) => {
-      // rectArray.forEach((rect) => {
-      //   if (rect.isActive) rect.isActive = false;
-      // });
-
       if (arc.horizontelResizing) {
         arc.isActive = true;
         arc.xRadius = Math.abs(mouseX - arc.x);
@@ -665,6 +679,7 @@ newRect.addEventListener("click", (e) => {
 
   // Listen for click on the canvas to place the rectangle inside it
   canvas.addEventListener("click", (e) => {
+    shape.remove();
     const x = e.clientX - canvas.getBoundingClientRect().left;
     const y = e.clientY - canvas.getBoundingClientRect().top;
     if (NEWSHAPE) {
@@ -672,22 +687,9 @@ newRect.addEventListener("click", (e) => {
       rectArray.set(Math.random() * 10, temp);
       temp.draw(); // Draw the new rectangle
       NEWSHAPE = false; // Reset NEWSHAPE to null
-
-      setTimeout(() => {
-        document.body.removeChild(shape); // Remove the temporary shape from the document body
-      }, 100);
     }
   });
 });
-
-// add new rect
-// newRect.addEventListener("click", (e) => {
-//   NEWSHAPE = true;
-//   shapeHover(NEWSHAPE);
-//   // const temp = new Rectangle(Math.random() * 150, Math.random() * 150);
-//   // rectArray.set(Math.random() * 10, temp);
-//   // temp.draw(); // Draw the new rectangle
-// });
 
 // add new circle
 newCircle.addEventListener("click", (e) => {
@@ -699,4 +701,19 @@ newCircle.addEventListener("click", (e) => {
   const arc = new Circle(Math.random() * 150, Math.random() * 150);
   circleArray.set(Math.random() * 10, arc);
   arc.draw();
+});
+
+canvas.addEventListener("dblclick", function (event) {
+  // Handle double click event
+  console.log("Double click detected");
+  console.log(event.target);
+  if (event.target.tagName === "INPUT") return;
+
+  const html = `<input type="text" class="w-[10ch] absolute px-[3px] text-[14px] outline-none bg-transparent focus:border-[1px] border-zinc-400/50 z-[999] shadow-sm" id="input"/>
+  `;
+  document.body.insertAdjacentHTML("afterbegin", html);
+  const input = document.getElementById("input");
+  input.style.left = event.clientX + "px";
+  input.style.top = event.clientY + "px";
+  input.focus();
 });
