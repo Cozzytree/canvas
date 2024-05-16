@@ -10,15 +10,24 @@
   <body>
     <div id="app" class="w-screen overflow-x-hidden grid grid-cols-[auto_1fr]">
       <div
-        class="w-[80px] mt-10 h-fit mx-1 border-[1px] border-zinc-400/50 rounded-md grid grid-cols-2 gap-4 justify-items-center p-2"
+        class="w-[40px] mt-10 h-fit mx-1 border-[1px] border-zinc-400/50 rounded-md flex flex-col gap-5 p-2"
       >
         <button id="newRect"><div class="square"></div></button>
         <button id="newCircle"><div class="circle"></div></button>
         <button id="Text">
           <h2 class="font-extrabold">T</h2>
         </button>
+        <button id="pencil">
+          <img
+            src="/public/pencil.svg"
+            loading="lazy"
+            alt=""
+            width="50px"
+            height="50px"
+          />
+        </button>
       </div>
-      <canvas id="canvas" class="min-h-screen"></canvas>
+      <canvas id="canvas" class="min-h-screen z-[900] bg-transparent"></canvas>
     </div>
     <script type="module" src="src/main.js"></script>
   </body>

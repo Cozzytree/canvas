@@ -5,8 +5,10 @@ const newCircle = document.getElementById("newCircle");
 const setText = document.getElementById("Text");
 const context = canvas.getContext("2d");
 const newRect = document.getElementById("newRect");
+const pencil = document.getElementById("pencil");
 
-let NEWSHAPE = false;
+// let NEWSHAPE = false;
+let mode = "free";
 let SHAPE = null;
 
 export const circleArray = new Map();
@@ -402,15 +404,15 @@ class Rectangle extends Shapes {
   mouseDownforResizing(e) {
     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-    const width = 10;
+    const tolerance = 10;
     rectArray.forEach((rect) => {
       // horizaontal resizing //
       if (
-        (mouseX >= rect.x - width && mouseX <= rect.x + width) || // Left edge
-        (mouseX >= rect.x + rect.width - width &&
-          mouseX <= rect.x + rect.width + width &&
-          mouseY > rect.y + width &&
-          mouseY < rect.y + rect.height - width)
+        (mouseX >= rect.x - tolerance && mouseX <= rect.x + tolerance) ||
+        (mouseX >= rect.x + rect.width - tolerance &&
+          mouseX <= rect.x + rect.width + tolerance &&
+          mouseY > rect.y + tolerance &&
+          mouseY < rect.y + rect.height - tolerance)
       ) {
         rect.isActive = true;
         rect.horizontelResizing = true;
@@ -418,11 +420,11 @@ class Rectangle extends Shapes {
 
       // vertical resizing //
       if (
-        (mouseY >= rect.y - width && mouseY <= rect.y + width) ||
-        (mouseY >= rect.y + rect.height - width &&
-          mouseY <= rect.y + rect.height + width &&
-          mouseX > rect.x + width &&
-          mouseX < rect.x + rect.width - width)
+        (mouseY >= rect.y - tolerance && mouseY <= rect.y + tolerance) ||
+        (mouseY >= rect.y + rect.height - tolerance &&
+          mouseY <= rect.y + rect.height + tolerance &&
+          mouseX > rect.x + tolerance &&
+          mouseX < rect.x + rect.width - tolerance)
       ) {
         rect.isActive = true;
         rect.verticalResizing = true;
@@ -431,25 +433,25 @@ class Rectangle extends Shapes {
       // corners resize //
       if (
         // Top-left corner
-        (mouseX >= rect.x - width &&
-          mouseX <= rect.x + width &&
-          mouseY >= rect.y - width &&
-          mouseY <= rect.y + width) ||
+        (mouseX >= rect.x - tolerance &&
+          mouseX <= rect.x + tolerance &&
+          mouseY >= rect.y - tolerance &&
+          mouseY <= rect.y + tolerance) ||
         // Top-right corner
-        (mouseX >= rect.x + rect.width - width &&
-          mouseX <= rect.x + rect.width + width &&
-          mouseY >= rect.y - width &&
-          mouseY <= rect.y + width) ||
+        (mouseX >= rect.x + rect.width - tolerance &&
+          mouseX <= rect.x + rect.width + tolerance &&
+          mouseY >= rect.y - tolerance &&
+          mouseY <= rect.y + tolerance) ||
         // Bottom-left corner
-        (mouseX >= rect.x - width &&
-          mouseX <= rect.x + width &&
-          mouseY >= rect.y + rect.height - width &&
-          mouseY <= rect.y + rect.height + width) ||
+        (mouseX >= rect.x - tolerance &&
+          mouseX <= rect.x + tolerance &&
+          mouseY >= rect.y + rect.height - tolerance &&
+          mouseY <= rect.y + rect.height + tolerance) ||
         // Bottom-right corner
-        (mouseX >= rect.x + rect.width - width &&
-          mouseX <= rect.x + rect.width + width &&
-          mouseY >= rect.y + rect.height - width &&
-          mouseY <= rect.y + rect.height + width)
+        (mouseX >= rect.x + rect.width - tolerance &&
+          mouseX <= rect.x + rect.width + tolerance &&
+          mouseY >= rect.y + rect.height - tolerance &&
+          mouseY <= rect.y + rect.height + tolerance)
       ) {
         rect.isActive = true;
         rect.isResizing = true;
@@ -467,11 +469,13 @@ class Rectangle extends Shapes {
         const newX = mouseX > rect.x ? rect.x : mouseX;
         console.log(rect.x, rect.x + rect.width);
 
-        rect.width = Math.abs(mouseX - rect.x); // Adjust width when mouseX is below rect.x
+        rect.x = newX;
+        if (mouseX < oldPosition) {
+          rect.width = Math.abs(oldPosition - mouseX);
+        } else if (mouseX > oldPosition) rect.width = Math.abs(mouseX - rect.x); // Adjust width when mouseX is below rect.x
 
         // rect.width = Math.abs(mouseX - rect.x); // Adjust width normally when mouseX is to the right
 
-        rect.x = newX;
         rect.draw();
       }
 
@@ -479,19 +483,23 @@ class Rectangle extends Shapes {
         const oldPosition = rect.y + rect.height;
         const newY = mouseY > rect.y ? rect.y : mouseY;
 
-        if (mouseY < rect.y) {
-          rect.height = oldPosition - mouseY; // Adjust width when mouseX is below rect.x
-        } else {
-          rect.height = mouseY - rect.Y; // Adjust width normally when mouseX is to the right
-        }
+        rect.y = newY;
+        if (mouseY < oldPosition) {
+          rect.height = Math.abs(oldPosition - mouseY);
+        } else if (mouseY > oldPosition)
+          rect.height = Math.abs(mouseY - rect.y);
 
-        rect.Y = newY;
         rect.draw();
       }
+
       if (rect.isResizing) {
         rect.isActive = true;
-        rect.width = e.clientX - canvas.getBoundingClientRect().left - rect.x;
-        rect.height = e.clientY - canvas.getBoundingClientRect().top - rect.y;
+        rect.width = Math.abs(
+          e.clientX - canvas.getBoundingClientRect().left - rect.x
+        );
+        rect.height = Math.abs(
+          e.clientY - canvas.getBoundingClientRect().top - rect.y
+        );
         rect.draw();
       }
     });
@@ -663,7 +671,7 @@ class Circle extends Shapes {
 }
 
 newRect.addEventListener("click", (e) => {
-  NEWSHAPE = true;
+  mode = "rect";
   const shape = document.createElement("div");
   shape.classList.add("rectShape");
   shape.style.width = "100px";
@@ -671,7 +679,7 @@ newRect.addEventListener("click", (e) => {
   shape.style.position = "absolute";
 
   document.addEventListener("mousemove", (e) => {
-    if (!NEWSHAPE) return;
+    if (mode !== "rect") return;
     shape.style.top = e.clientY + "px";
     shape.style.left = e.clientX + "px";
     document.body.append(shape);
@@ -682,11 +690,11 @@ newRect.addEventListener("click", (e) => {
     shape.remove();
     const x = e.clientX - canvas.getBoundingClientRect().left;
     const y = e.clientY - canvas.getBoundingClientRect().top;
-    if (NEWSHAPE) {
+    if (mode === "rect") {
       const temp = new Rectangle(x, y);
       rectArray.set(Math.random() * 10, temp);
       temp.draw(); // Draw the new rectangle
-      NEWSHAPE = false; // Reset NEWSHAPE to null
+      mode = "free";
     }
   });
 });
@@ -717,3 +725,71 @@ canvas.addEventListener("dblclick", function (event) {
   input.style.top = event.clientY + "px";
   input.focus();
 });
+
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let currentDrawingId = 0; // ID for the current drawing
+let drawingsMap = new Map(); // Map to store drawings
+
+pencil.addEventListener("click", () => {
+  mode = "pencil";
+  canvas.addEventListener("mousedown", startDrawing);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDrawing);
+});
+
+function startDrawing(e) {
+  if (mode !== "pencil") return;
+  currentDrawingId++;
+  isDrawing = true;
+  [lastX, lastY] = [
+    e.clientX - canvas.getBoundingClientRect().left,
+    e.clientY - canvas.getBoundingClientRect().top,
+  ];
+}
+
+function draw(e) {
+  if (!isDrawing || mode !== "pencil") return;
+  const x = e.clientX - canvas.offsetLeft;
+  const y = e.clientY - canvas.offsetTop;
+
+  context.beginPath();
+  context.moveTo(lastX, lastY);
+  context.lineTo(x, y);
+  context.strokeStyle = "white"; // Set pencil color
+  context.lineWidth = 2; // Set pencil thickness
+  context.lineCap = "round";
+  context.stroke();
+
+  [lastX, lastY] = [x, y];
+
+  // Store drawing data in the map
+  if (!drawingsMap.has(currentDrawingId)) {
+    drawingsMap.set(currentDrawingId, []);
+  }
+  drawingsMap.get(currentDrawingId).push({ x, y });
+}
+
+function stopDrawing() {
+  console.log(drawingsMap);
+  isDrawing = false;
+}
+
+// context.beginPath();
+// [
+//   { x: 100, y: 100 },
+//   { x: 200, y: 200 },
+//   { x: 430, y: 353, x: 500, y: 30 },
+// ].forEach((coor, index) => {
+//   if (index === 0) {
+//     context.moveTo(coor.x, coor.y); // Move to the first point
+//   } else {
+//     context.lineTo(coor.x, coor.y); // Draw a line to subsequent points
+//   }
+// });
+// context.strokeStyle = "white"; // Set pencil color
+// context.lineWidth = 2; // Set pencil thickness
+// context.lineCap = "round";
+// context.stroke(); // Stroke the path to draw the lines
+// context.closePath();
