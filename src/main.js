@@ -14,7 +14,7 @@ let SHAPE = null;
 export const circleArray = new Map();
 export const rectArray = new Map();
 
-canvas.width = window.innerWidth - 100;
+canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 export class Shapes {
@@ -122,30 +122,51 @@ export class Shapes {
 
     rectArray.forEach((rect) => {
       if (rect.isActive) {
-        context.save();
-        const dotRadius = 5;
-        context.lineWidth = 1;
-        context.strokeStyle = "skyblue";
-        context.fillStyle = "rgb(0, 149, 255)"; // Color for active dots
-        context.beginPath();
-        context.arc(rect.x, rect.y, dotRadius, 0, Math.PI * 2);
-        context.fill();
-        context.beginPath();
-        context.arc(rect.x + rect.width, rect.y, dotRadius, 0, Math.PI * 2);
-        context.fill();
-        context.beginPath();
-        context.arc(rect.x, rect.y + rect.height, dotRadius, 0, Math.PI * 2);
-        context.fill();
-        context.beginPath();
-        context.arc(
-          rect.x + rect.width,
-          rect.y + rect.height,
-          dotRadius,
-          0,
-          Math.PI * 2
-        );
-        context.fill();
-        context.restore();
+        // Remove existing focusedRect elements efficiently
+        const focusedRects = document.querySelectorAll(".focusedRect");
+        focusedRects.forEach((rect) => rect.remove());
+
+        // Create a new focusedRect element
+        const div = document.createElement("div");
+        div.classList.add("focusedRect");
+
+        // Cache the canvas bounding rectangle
+        const canvasRect = canvas.getBoundingClientRect();
+
+        Object.assign(div.style, {
+          position: "absolute",
+          left: `${rect.x + canvasRect.left- 10}px`,
+          top: `${rect.y - 10}px`,
+          width: `${rect.width + 20}px`,
+          height: `${rect.height + 20}px`,
+        });
+
+        document.body.append(div);
+
+        // context.save();
+        // const dotRadius = 5;
+        // context.lineWidth = 1;
+        // context.strokeStyle = "skyblue";
+        // context.fillStyle = "rgb(0, 149, 255)"; // Color for active dots
+        // context.beginPath();
+        // context.arc(rect.x, rect.y, dotRadius, 0, Math.PI * 2);
+        // context.fill();
+        // context.beginPath();
+        // context.arc(rect.x + rect.width, rect.y, dotRadius, 0, Math.PI * 2);
+        // context.fill();
+        // context.beginPath();
+        // context.arc(rect.x, rect.y + rect.height, dotRadius, 0, Math.PI * 2);
+        // context.fill();
+        // context.beginPath();
+        // context.arc(
+        //   rect.x + rect.width,
+        //   rect.y + rect.height,
+        //   dotRadius,
+        //   0,
+        //   Math.PI * 2
+        // );
+        // context.fill();
+        // context.restore();
       } else context.strokeStyle = "white";
 
       const radius = 10; // Adjust the radius for the desired roundness
@@ -670,6 +691,7 @@ class Circle extends Shapes {
   }
 }
 
+// draw new rect
 newRect.addEventListener("click", (e) => {
   mode = "rect";
   const shape = document.createElement("div");
@@ -701,20 +723,36 @@ newRect.addEventListener("click", (e) => {
 
 // add new circle
 newCircle.addEventListener("click", (e) => {
-  for (const [key, circle] of circleArray.entries()) {
-    if (circle.isActive) {
-      circle.isActive = false;
+  mode = "circle";
+  const shape = document.createElement("div");
+  shape.classList.add("rectShape");
+  shape.style.width = "100px";
+  shape.style.height = "100px";
+  shape.style.position = "absolute";
+  shape.style.borderRadius = "100%";
+
+  document.addEventListener("mousemove", (e) => {
+    if (mode !== "circle") return;
+    shape.style.top = e.clientY + "px";
+    shape.style.left = e.clientX + "px";
+    document.body.append(shape);
+  });
+
+  canvas.addEventListener("click", (e) => {
+    shape.remove();
+    const x = e.clientX - canvas.getBoundingClientRect().left;
+    const y = e.clientY - canvas.getBoundingClientRect().top;
+    if (mode === "circle") {
+      const temp = new Circle(x + 50, y + 50);
+      circleArray.set(Math.random() * 10, temp);
+      temp.draw(); // Draw the new rectangle
+      mode = "free";
     }
-  }
-  const arc = new Circle(Math.random() * 150, Math.random() * 150);
-  circleArray.set(Math.random() * 10, arc);
-  arc.draw();
+  });
 });
 
 canvas.addEventListener("dblclick", function (event) {
   // Handle double click event
-  console.log("Double click detected");
-  console.log(event.target);
   if (event.target.tagName === "INPUT") return;
 
   const html = `<input type="text" class="w-[10ch] absolute px-[3px] text-[14px] outline-none bg-transparent focus:border-[1px] border-zinc-400/50 z-[999] shadow-sm" id="input"/>
@@ -724,6 +762,17 @@ canvas.addEventListener("dblclick", function (event) {
   input.style.left = event.clientX + "px";
   input.style.top = event.clientY + "px";
   input.focus();
+
+  input.addEventListener("change", (e) => {
+    context.font = "14px Arial";
+    context.fillStyle = "white"; // Ensure fillStyle is set
+    context.fillText(
+      e.target.value,
+      event.clientX - canvas.getBoundingClientRect().left,
+      event.clientY - canvas.getBoundingClientRect().top + 5
+    );
+    input.remove();
+  });
 });
 
 let isDrawing = false;
@@ -772,7 +821,6 @@ function draw(e) {
 }
 
 function stopDrawing() {
-  console.log(drawingsMap);
   isDrawing = false;
 }
 
