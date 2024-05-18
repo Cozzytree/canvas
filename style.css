@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 224 71% 4%;
+    --background: 0 0% 0%;
     --foreground: 213 31% 91%;
 
     --muted: 223 47% 11%;
@@ -60,7 +60,7 @@
   position: relative;
   width: 20px;
   height: 20px;
-  border: 1.5px solid white;
+  border: 1.5px solid white ;
   border-radius: 2px;
 }
 
@@ -89,7 +89,7 @@
 }
 
 .rectShape {
-  border: 1px solid rgba(191, 197, 199, 0.603);
+  border: 1px solid rgba(140, 140, 140, 0.363);
   border-radius: 2px;
 }
 

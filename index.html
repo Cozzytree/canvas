@@ -9,24 +9,41 @@
   </head>
   <body>
     <div id="app" class="w-screen overflow-x-hidden grid grid-cols-[auto_1fr]">
-      <div
-        class="w-[40px] mt-10 h-fit mx-1 border-[1px] border-zinc-400/50 rounded-md flex flex-col gap-5 p-2"
+      <main
+        class="w-[40px] mt-10 h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col gap-5 p-2"
       >
-        <button id="newRect"><div class="square"></div></button>
-        <button id="newCircle"><div class="circle"></div></button>
-        <button id="Text">
+        <button id="freeMode" class="cursor-pointer">
+          <img
+            src="/cursor.svg"
+            loading="lazy"
+            width="50px"
+            height="50px"
+            alt=""
+          />
+        </button>
+
+        <button class="cursor-pointer" id="newRect">
+          <div class="square"></div>
+        </button>
+
+        <button class="cursor-pointer" id="newCircle">
+          <div class="circle"></div>
+        </button>
+
+        <button class="cursor-pointer" id="Text">
           <h2 class="font-extrabold">T</h2>
         </button>
-        <button id="pencil">
+
+        <button class="cursor-pointer" id="pencil">
           <img
-            src="/public/pencil.svg"
+            src="/pencil.svg"
             loading="lazy"
             alt=""
             width="50px"
             height="50px"
           />
         </button>
-      </div>
+      </main>
       <canvas id="canvas" class="min-h-screen z-[900] bg-transparent"></canvas>
     </div>
     <script type="module" src="src/main.js"></script>
