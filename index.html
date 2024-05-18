@@ -10,9 +10,12 @@
   <body>
     <div id="app" class="w-screen overflow-x-hidden grid grid-cols-[auto_1fr]">
       <main
-        class="w-[40px] mt-10 h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col gap-5 p-2"
+        class="w-[45px] mt-10 h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col p-[2px]"
       >
-        <button id="freeMode" class="cursor-pointer">
+        <button
+          id="freeMode"
+          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
+        >
           <img
             src="/cursor.svg"
             loading="lazy"
@@ -22,19 +25,31 @@
           />
         </button>
 
-        <button class="cursor-pointer" id="newRect">
+        <button
+          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
+          id="newRect"
+        >
           <div class="square"></div>
         </button>
 
-        <button class="cursor-pointer" id="newCircle">
+        <button
+          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
+          id="newCircle"
+        >
           <div class="circle"></div>
         </button>
 
-        <button class="cursor-pointer" id="Text">
+        <button
+          class="cursor-pointer px-2 h-[40px] py-[1\0px] flex justify-center items-center hover:bg-zinc-700/50 transition-all duration-150"
+          id="Text"
+        >
           <h2 class="font-extrabold">T</h2>
         </button>
 
-        <button class="cursor-pointer" id="pencil">
+        <button
+          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
+          id="pencil"
+        >
           <img
             src="/pencil.svg"
             loading="lazy"
