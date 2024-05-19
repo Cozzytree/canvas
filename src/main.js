@@ -1,4 +1,5 @@
 import "./events.js";
+import { changeStyle } from "./events.js";
 import { config } from "./config.js";
 
 export const canvas = document.getElementById("canvas");
@@ -116,6 +117,8 @@ export class Shapes {
         this.draw();
       }
     });
+
+    canvas.addEventListener("mousedown", this.mouseDownForActive.bind(this));
   }
 
   draw() {
@@ -305,10 +308,79 @@ export class Shapes {
     });
 
     context.font = "14px Arial";
-    context.fillStyle = "white"; 
+    context.fillStyle = "white";
     text.forEach((t) => {
       context.fillText(t.content, t.x, t.y);
     });
+  }
+
+  mouseDownForActive(e) {
+    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+    let smallestCircle = null;
+    let smallestRect = null;
+
+    for (const [key, rect] of rectMap) {
+      if (
+        mouseX > rect.x &&
+        mouseX < rect.x + rect.width &&
+        mouseY > rect.y &&
+        mouseY < rect.y + rect.height
+      ) {
+        if (
+          smallestRect === null ||
+          rect.width * rect.height < smallestRect.width * smallestRect.height
+        ) {
+          smallestRect = rect;
+        }
+      }
+    }
+
+    for (const [_, sphere] of circleMap) {
+      const isInside = Math.sqrt(
+        (mouseX - sphere.x) ** 2 + (mouseY - sphere.y) ** 2
+      );
+
+      if (sphere.isActive) sphere.isActive = false;
+      if (isInside < sphere.xRadius && isInside < sphere.yRadius) {
+        sphere.isActive = false;
+        if (
+          smallestCircle === null ||
+          // sphere.xRadius - isInside < smallestCircle.xRadius - isInside
+          (sphere.xRadius < smallestCircle.xRadius &&
+            sphere.yRadius < smallestCircle.yRadius)
+        ) {
+          smallestCircle = sphere;
+        }
+      }
+    }
+
+    if (!smallestRect && smallestCircle) {
+      smallestCircle.isActive = true;
+      smallestCircle.isDragging = true;
+      smallestCircle.offsetX = mouseX - smallestCircle.x;
+      smallestCircle.offsetY = mouseY - smallestCircle.y;
+    } else if (smallestRect && !smallestCircle) {
+      smallestRect.isActive = true;
+      smallestRect.isDragging = true;
+      smallestRect.offsetX = mouseX - smallestRect.x;
+      smallestRect.offsetY = mouseY - smallestRect.y;
+    } else if (smallestCircle && smallestRect) {
+      if (
+        smallestCircle.x - smallestCircle.xRadius * 2 * smallestCircle.xRadius >
+        smallestRect.x * smallestRect
+      ) {
+        smallestCircle.isActive = true;
+        smallestCircle.isDragging = true;
+        smallestCircle.offsetX = mouseX - smallestCircle.x;
+        smallestCircle.offsetY = mouseY - smallestCircle.y;
+      } else {
+        smallestRect.isActive = true;
+        smallestRect.isDragging = true;
+        smallestRect.offsetX = mouseX - smallestRect.x;
+        smallestRect.offsetY = mouseY - smallestRect.y;
+      }
+    }
   }
 }
 
@@ -320,7 +392,6 @@ export class Rectangle extends Shapes {
     this.width = width;
     this.height = height;
 
-    canvas.addEventListener("mousedown", this.mouseDown.bind(this));
     canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
 
     canvas.addEventListener("mousemove", this.mouseMove.bind(this));
@@ -328,26 +399,6 @@ export class Rectangle extends Shapes {
 
     canvas.addEventListener("mouseup", this.mouseUp.bind(this));
     canvas.addEventListener("mouseup", this.mouseUpforResizing.bind(this));
-  }
-
-  mouseDown(event) {
-    const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-    // Check if the mouse is inside any rectangle
-    rectMap.forEach((rect) => {
-      // if (rect.isActive) rect.isActive = false;
-      if (
-        mouseX > rect.x + 10 &&
-        mouseX < rect.x + rect.width - 10 &&
-        mouseY > rect.y + 10 &&
-        mouseY < rect.y + rect.height - 10
-      ) {
-        rect.isActive = true;
-        rect.isDragging = true;
-        rect.offsetX = mouseX - rect.x;
-        rect.offsetY = mouseY - rect.y;
-      }
-    });
   }
 
   mouseMove(event) {
@@ -517,7 +568,7 @@ export class Circle extends Shapes {
     this.xRadius = xRadius;
     this.yRadius = yRadius;
 
-    canvas.addEventListener("mousedown", this.mouseDown.bind(this));
+    // canvas.addEventListener("mousedown", this.mouseDown.bind(this));
     canvas.addEventListener("mousemove", this.mouseMove.bind(this));
     canvas.addEventListener("mouseup", this.mouseUp.bind(this));
 
@@ -526,26 +577,37 @@ export class Circle extends Shapes {
     canvas.addEventListener("mouseup", this.mouseUpResize.bind(this));
   }
 
-  mouseDown(event) {
-    if (config.mode === "pencil") return;
-    const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-    // Check if the mouse is inside any rectangle
-    const width = 10;
-    circleMap.forEach((sphere) => {
-      const isInside = Math.sqrt(
-        (mouseX - sphere.x) ** 2 + (mouseY - sphere.y) ** 2
-      );
+  // mouseDown(event) {
+  //   if (config.mode === "pencil") return;
+  //   const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+  //   const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+  //   let smallestCircle = null;
 
-      if (sphere.isActive) sphere.isActive = false;
-      if (isInside < sphere.xRadius && isInside < sphere.yRadius) {
-        sphere.isActive = true;
-        sphere.isDragging = true;
-        sphere.offsetX = mouseX - sphere.x;
-        sphere.offsetY = mouseY - sphere.y;
-      }
-    });
-  }
+  //   // Check if the mouse is inside any rectangle
+  //   circleMap.forEach((sphere) => {
+  //     const isInside = Math.sqrt(
+  //       (mouseX - sphere.x) ** 2 + (mouseY - sphere.y) ** 2
+  //     );
+
+  //     if (sphere.isActive) sphere.isActive = false;
+  //     if (isInside < sphere.xRadius && isInside < sphere.yRadius) {
+  //       if (
+  //         smallestCircle === null ||
+  //         sphere.xRadius * sphere.yRadius <
+  //           smallestCircle.xRadius * smallestCircle.yRadius
+  //       ) {
+  //         smallestCircle = sphere;
+  //       }
+  //     }
+  //     if (smallestCircle) {
+  //       smallestCircle.isActive = true;
+  //       smallestCircle.isDragging = true;
+  //       smallestCircle.offsetX = mouseX - smallestCircle.x;
+  //       smallestCircle.offsetY = mouseY - smallestCircle.y;
+  //       console.log(smallestCircle);
+  //     }
+  //   });
+  // }
 
   mouseMove(event) {
     circleMap.forEach((arc) => {
@@ -717,3 +779,5 @@ function draw(e) {
 function stopDrawing() {
   isDrawing = false;
 }
+
+new Shapes();

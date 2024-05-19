@@ -1,15 +1,15 @@
+import { canvas, rectMap, Rectangle, Circle, circleMap, text } from "./main";
+import { config } from "./config";
 const newRect = document.getElementById("newRect");
 const newCircle = document.getElementById("newCircle");
 const pencil = document.getElementById("pencil");
 const freeMode = document.getElementById("freeMode");
-import { canvas, rectMap, Rectangle, Circle, circleMap, text } from "./main";
-import { config } from "./config";
 
 // draw new rect
 newRect.addEventListener("click", (e) => {
   document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
   config.mode = "rect";
-  changeStyle(config.mode);
+  changeStyle();
   const shape = document.createElement("div");
   shape.classList.add("rectShape");
   shape.style.width = "100px";
@@ -33,6 +33,7 @@ newRect.addEventListener("click", (e) => {
       rectMap.set(Math.random() * 10, temp);
       temp.draw(); // Draw the new rectangle
       config.mode = "free";
+      changeStyle();
     }
   });
 });
@@ -41,7 +42,7 @@ newRect.addEventListener("click", (e) => {
 newCircle.addEventListener("click", (e) => {
   document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
   config.mode = "circle";
-  changeStyle(config.mode);
+  changeStyle();
   const shape = document.createElement("div");
   shape.classList.add("rectShape");
   shape.style.width = "100px";
@@ -65,6 +66,7 @@ newCircle.addEventListener("click", (e) => {
       circleMap.set(Math.random() * 10, temp);
       temp.draw(); // Draw the new rectangle
       config.mode = "free";
+      changeStyle();
     }
   });
 });
@@ -73,7 +75,7 @@ newCircle.addEventListener("click", (e) => {
 freeMode.addEventListener("click", (e) => {
   document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
   config.mode = "free";
-  changeStyle(config.mode);
+  changeStyle();
 });
 
 canvas.addEventListener("dblclick", function (event) {
@@ -100,23 +102,23 @@ canvas.addEventListener("dblclick", function (event) {
   });
 });
 
-function changeStyle(mode) {
-  if (mode === "pencil") {
+export function changeStyle() {
+  if (config.mode === "pencil") {
     pencil.style.background = "#8080806b";
     newRect.style.background = "transparent";
     newCircle.style.background = "transparent";
     freeMode.style.background = "transparent";
-  } else if (mode === "rect") {
+  } else if (config.mode === "rect") {
     newRect.style.background = "#8080806b";
     pencil.style.background = "transparent";
     newCircle.style.background = "transparent";
     freeMode.style.background = "transparent";
-  } else if (mode === "free") {
+  } else if (config.mode === "free") {
     freeMode.style.background = "#8080806b";
     newRect.style.background = "transparent";
     pencil.style.background = "transparent";
     newCircle.style.background = "transparent";
-  } else if (mode === "circle") {
+  } else if (config.mode === "circle") {
     freeMode.style.background = "transparent";
     newRect.style.background = "transparent";
     pencil.style.background = "transparent";
