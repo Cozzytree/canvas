@@ -1,8 +1,16 @@
-import { canvas, rectMap, Rectangle, Circle, circleMap, text } from "./main";
+import {
+  rectMap,
+  Rectangle,
+  Circle,
+  circleMap,
+  textMap,
+  pencilMap,
+  Text,
+} from "./main";
 import { config } from "./config";
+import { canvas, pencil, context } from "./selectors";
 const newRect = document.getElementById("newRect");
 const newCircle = document.getElementById("newCircle");
-const pencil = document.getElementById("pencil");
 const freeMode = document.getElementById("freeMode");
 
 // draw new rect
@@ -92,15 +100,75 @@ canvas.addEventListener("dblclick", function (event) {
 
   input.addEventListener("change", (e) => {
     const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = event.clientY - canvas.getBoundingClientRect().top + 5;
-    text.set(Math.random() * 100, {
-      x: mouseX,
-      y: mouseY,
-      content: e.target.value,
-    });
+    const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+    const newText = new Text(mouseX, mouseY, 15, e.target.value);
+    textMap.set(Math.random() * 100, newText);
+    newText.draw();
+    input.remove();
+  });
+
+  input.addEventListener("blur", (e) => {
     input.remove();
   });
 });
+
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let currentDrawingId = 0; // ID for the current drawing
+
+pencil.addEventListener("click", () => {
+  config.mode = "pencil";
+  changeStyle();
+  rectMap.forEach((rect) => {
+    rect.isActive = false;
+    rect.draw();
+  });
+  circleMap.forEach((arc) => {
+    arc.isActive = false;
+    arc.draw();
+  });
+  canvas.addEventListener("mousedown", startDrawing);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDrawing);
+});
+
+function startDrawing(e) {
+  if (config.mode !== "pencil") return;
+  currentDrawingId++;
+  isDrawing = true;
+  [lastX, lastY] = [
+    e.clientX - canvas.getBoundingClientRect().left,
+    e.clientY - canvas.getBoundingClientRect().top,
+  ];
+}
+
+function draw(e) {
+  if (!isDrawing || config.mode !== "pencil") return;
+  const x = e.clientX - canvas.offsetLeft;
+  const y = e.clientY - canvas.offsetTop;
+
+  context.beginPath();
+  context.moveTo(lastX, lastY);
+  context.lineTo(x, y);
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  context.lineWidth = 1.6;
+  context.strokeStyle = "#dcdcdc";
+  context.stroke();
+
+  [lastX, lastY] = [x, y];
+
+  // Store drawing data in the map
+  if (!pencilMap.has(currentDrawingId)) {
+    pencilMap.set(currentDrawingId, []);
+  }
+  pencilMap.get(currentDrawingId).push({ x, y });
+}
+
+function stopDrawing() {
+  isDrawing = false;
+}
 
 export function changeStyle() {
   if (config.mode === "pencil") {

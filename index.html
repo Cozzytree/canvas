@@ -8,9 +8,9 @@
     <title>Vite App</title>
   </head>
   <body>
-    <div id="app" class="w-screen overflow-x-hidden grid grid-cols-[auto_1fr]">
+    <div id="app" class="w-screen overflow-x-hidden flex relative">
       <main
-        class="w-[45px] mt-10 h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col p-[2px]"
+        class="w-[42px] h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col absolute top-10 left-2"
       >
         <button
           id="freeMode"
@@ -59,7 +59,10 @@
           />
         </button>
       </main>
-      <canvas id="canvas" class="min-h-screen z-[900] bg-transparent"></canvas>
+      <canvas
+        id="canvas"
+        class="min-h-screen z-[900] bg-transparent absolute top-0 left-0"
+      ></canvas>
     </div>
     <script type="module" src="src/main.js"></script>
   </body>
