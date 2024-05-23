@@ -1,14 +1,11 @@
-import {
-  rectMap,
-  Rectangle,
-  Circle,
-  circleMap,
-  textMap,
-  pencilMap,
-  Text,
-} from "./main";
-import { config } from "./config";
-import { canvas, pencil, context } from "./selectors";
+import { rectMap, circleMap, textMap, pencilMap, arrows } from "./main.js";
+import { config } from "./config.js";
+import { canvas, pencil, context, lineArrow } from "./selectors";
+import { Rectangle } from "./rect.js";
+import { Circle } from "./sphere.js";
+import { Text } from "./text.js";
+import { Arrows } from "./arrow.js";
+
 const newRect = document.getElementById("newRect");
 const newCircle = document.getElementById("newCircle");
 const freeMode = document.getElementById("freeMode");
@@ -86,6 +83,41 @@ freeMode.addEventListener("click", (e) => {
   changeStyle();
 });
 
+lineArrow.addEventListener("click", () => {
+  document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
+  config.mode = "arrowLine";
+  changeStyle();
+  const line = document.createElement("div");
+  line.classList.add("rectShape");
+  line.style.width = "100px";
+  line.style.height = "2px";
+  line.style.position = "absolute";
+
+  document.addEventListener("mousemove", (e) => {
+    // console.log(config.mode);
+    if (config.mode !== "arrowLine") return;
+    line.style.top = e.clientY + "px";
+    line.style.left = e.clientX + "px";
+    document.body.append(line);
+  });
+
+  canvas.addEventListener("click", (e) => {
+    if (config.mode !== "arrowLine") return;
+
+    line.remove();
+    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+
+    const newArr = new Arrows(mouseX, mouseY, mouseX + 100, mouseY);
+
+    arrows.set(Math.random() * 10, newArr);
+    config.mode = "free";
+    changeStyle();
+    newArr.isActive = true;
+    newArr.drawArrow(newArr.x, newArr.y, newArr.tox, newArr.toy, 2, "white");
+  });
+});
+
 canvas.addEventListener("dblclick", function (event) {
   // Handle double click event
   if (event.target.tagName === "INPUT") return;
@@ -96,12 +128,13 @@ canvas.addEventListener("dblclick", function (event) {
   const input = document.getElementById("input");
   input.style.left = event.clientX + "px";
   input.style.top = event.clientY + "px";
+  input.style.fontSize = "18px";
   input.focus();
 
   input.addEventListener("change", (e) => {
     const mouseX = event.clientX - canvas.getBoundingClientRect().left;
     const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-    const newText = new Text(mouseX, mouseY, 15, e.target.value);
+    const newText = new Text(mouseX, mouseY, 20, e.target.value);
     textMap.set(Math.random() * 100, newText);
     newText.draw();
     input.remove();

@@ -8,14 +8,13 @@ import {
   // canvasText,
 } from "./selectors.js";
 
-//for pencil drawing
-
-const setText = document.getElementById("Text");
+// for pencil drawing
 
 export const circleMap = new Map();
 export const rectMap = new Map();
 export const pencilMap = new Map();
 export const textMap = new Map();
+export const arrows = new Map();
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -46,11 +45,14 @@ export class Shapes {
       // Reset all shapes to inactive
       rectMap.forEach((rect) => (rect.isActive = false));
       circleMap.forEach((circle) => (circle.isActive = false));
+      textMap.forEach((text) => (text.isActive = false));
+
       let circle = null;
       let square = null;
+      let text = null;
 
       // Check if the click is within any rectangle
-      for (const [key, rect] of rectMap) {
+      for (const [_, rect] of rectMap) {
         if (
           clickX >= rect.x &&
           clickX <= rect.x + rect.width &&
@@ -62,33 +64,75 @@ export class Shapes {
           }
         }
       }
-      for (const [key, arc] of circleMap) {
+
+      // click withinh circle
+      for (const [_, arc] of circleMap) {
         if (
           clickX > arc.x - arc.xRadius &&
           clickX <= arc.x + arc.xRadius &&
           clickY >= arc.y - arc.yRadius &&
           clickY <= arc.y + arc.yRadius
         ) {
-          if (circle === null || arc.xRadius > arc.xRadius) {
+          if (circle === null || arc.xRadius < circle.xRadius) {
             circle = arc;
           }
         }
       }
 
-      if (circle && !square) {
-        circle.isActive = true;
-      } else if (!circle && square) {
-        square.isActive = true;
-      } else if (circle && square) {
+      //click withinh text
+      for (const [_, t] of textMap) {
         if (
-          square.x < circle.x - circle.xRadius &&
-          square.x + square.width > circle.x + circle.xRadius
+          clickX >= t.x &&
+          clickX <= t.x + t.width &&
+          clickY >= t.y &&
+          clickY <= t.y + t.height
         ) {
+          if (text === null || t.width < text.width) {
+            text = t;
+          }
+        }
+      }
+
+      if (circle && !square && !text) {
+        circle.isActive = true;
+      } else if (!circle && square && !text) {
+        square.isActive = true;
+      } else if (!circle && !square && text) {
+        text.isActive = true;
+      } else if (circle && square && !text) {
+        if (square.width > 2 * circle.xRadius) {
           circle.isActive = true;
         } else {
           square.isActive = true;
         }
+      } else if (circle && !square && text) {
+        if (circle.xRadius * 2 < text.width) {
+          circle.isActive = true;
+        } else {
+          text.isActive = true;
+        }
+      } else if (!circle && square && text) {
+        if (square.width < text.width) {
+          square.isActive = true;
+        } else {
+          text.isActive = true;
+        }
+      } else if (circle && square && text) {
+        if (
+          circle.xRadius * 2 < text.width &&
+          circle.xRadius * 2 < square.width
+        ) {
+          circle.isActive = true;
+        } else if (
+          square.width < text.width &&
+          square.width < 2 * circle.xRadius
+        ) {
+          square.isActive = true;
+        } else {
+          text.isActive = true;
+        }
       }
+
       this.draw();
     });
 
@@ -131,14 +175,16 @@ export class Shapes {
       }
     });
 
-    canvas.addEventListener("mousedown", this.mouseDownForActive.bind(this));
+    canvas.addEventListener("mousedown", this.mouseDownDragging.bind(this));
+
+    canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
   }
 
   draw() {
     context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+    const radius = 10; // Adjust the radius for the desired roundness
 
     rectMap.forEach((rect) => {
-      const radius = 10; // Adjust the radius for the desired roundness
       const x = rect.x;
       const y = rect.y;
       const width = rect.width;
@@ -151,49 +197,22 @@ export class Shapes {
         context.strokeStyle = "rgb(2, 211, 134)";
         context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
 
-        // top left
-        context.beginPath();
-        context.arc(
-          rect.x - this.tolerance,
-          rect.y - this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
+        //dots
+        this.fourDots(
+          { x: rect.x - this.tolerance, y: rect.y - this.tolerance },
+          {
+            x: rect.x + rect.width + this.tolerance,
+            y: rect.y - this.tolerance,
+          },
+          {
+            x: rect.x + rect.width + this.tolerance,
+            y: rect.y + rect.height + this.tolerance,
+          },
+          {
+            x: rect.x - this.tolerance,
+            y: rect.y + rect.height + this.tolerance,
+          }
         );
-        context.fill();
-
-        // top right
-        context.beginPath();
-        context.arc(
-          rect.x + rect.width + this.tolerance,
-          rect.y - this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
-        );
-        context.fill();
-
-        // bottom right
-        context.beginPath();
-        context.arc(
-          rect.x + rect.width + this.tolerance,
-          rect.y + rect.height + this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
-        );
-        context.fill();
-
-        // bottom left
-        context.beginPath();
-        context.arc(
-          rect.x - this.tolerance,
-          rect.y + rect.height + this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
-        );
-        context.fill();
 
         // Draw the rectangle using canvas rect method
         context.beginPath();
@@ -220,7 +239,6 @@ export class Shapes {
       context.stroke();
     });
 
-    const dotRadius = 5;
     circleMap.forEach((sphere) => {
       const x = sphere.x - sphere.xRadius;
       const y = sphere.y - sphere.yRadius;
@@ -232,49 +250,13 @@ export class Shapes {
         context.strokeStyle = "rgb(2, 211, 134)";
         context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
 
-        //top left
-        context.beginPath();
-        context.arc(
-          x - this.tolerance,
-          y - this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
+        //dots
+        this.fourDots(
+          { x: x - this.tolerance, y: y - this.tolerance },
+          { x: width + this.tolerance, y: y - this.tolerance },
+          { x: width + this.tolerance, y: height + this.tolerance },
+          { x: x - this.tolerance, y: height + this.tolerance }
         );
-        context.fill();
-
-        // top right
-        context.beginPath();
-        context.arc(
-          width + this.tolerance,
-          y - this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
-        );
-        context.fill();
-
-        // bottom right
-        context.beginPath();
-        context.arc(
-          width + this.tolerance,
-          height + this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
-        );
-        context.fill();
-
-        // bottom left
-        context.beginPath();
-        context.arc(
-          x - this.tolerance,
-          height + this.tolerance,
-          dotRadius,
-          0,
-          Math.PI * 2
-        );
-        context.fill();
 
         // Draw the rectangle using canvas rect method
         context.beginPath();
@@ -327,8 +309,8 @@ export class Shapes {
       context.closePath();
     });
     context.restore();
-
     // context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
     context.save();
     context.fillStyle = "white";
     context.lineWidth = 1;
@@ -339,53 +321,15 @@ export class Shapes {
         context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
 
         //dots
-        //top left
-        context.beginPath();
-        context.arc(
-          t.x - this.tolerance,
-          t.y - this.tolerance,
-          4,
-          0,
-          2 * Math.PI,
-          false
+        this.fourDots(
+          { x: t.x - this.tolerance, y: t.y - this.tolerance },
+          { x: t.x + t.width + this.tolerance, y: t.y - this.tolerance },
+          {
+            x: t.x + t.width + this.tolerance,
+            y: t.y + t.height + this.tolerance,
+          },
+          { x: t.x - this.tolerance, y: t.y + t.height + this.tolerance }
         );
-        context.fill();
-
-        //top right
-        context.beginPath();
-        context.arc(
-          t.x + t.width + this.tolerance,
-          t.y - this.tolerance,
-          4,
-          0,
-          2 * Math.PI,
-          false
-        );
-        context.fill();
-
-        //bottom right
-        context.beginPath();
-        context.arc(
-          t.x + t.width + this.tolerance,
-          t.y + t.height + this.tolerance,
-          4,
-          0,
-          2 * Math.PI,
-          false
-        );
-        context.fill();
-
-        //bottom left
-        context.beginPath();
-        context.arc(
-          t.x - this.tolerance,
-          t.y + t.height + this.tolerance,
-          4,
-          0,
-          2 * Math.PI,
-          false
-        );
-        context.fill();
 
         context.beginPath();
         context.rect(
@@ -416,16 +360,89 @@ export class Shapes {
       );
     });
     context.restore();
+
+    //variables to be used when creating the arrow
+    let headlen = 10;
+    arrows.forEach((arrow) => {
+      context.save();
+      if (arrow.isActive) {
+        context.beginPath();
+        context.strokeStyle = "rgb(2, 211, 134)";
+        context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
+        // context.fillText = "";
+        context.moveTo(arrow.x - this.tolerance, arrow.y - this.tolerance);
+        context.lineTo(arrow.tox + this.tolerance, arrow.toy - this.tolerance);
+        context.lineTo(arrow.tox + this.tolerance, arrow.y + this.tolerance);
+        context.lineTo(arrow.x - this.tolerance, arrow.y + this.tolerance);
+        context.closePath();
+        context.stroke();
+
+        this.fourDots(
+          { x: arrow.x - this.tolerance, y: arrow.y - this.tolerance },
+          { x: arrow.tox + this.tolerance, y: arrow.y - this.tolerance },
+          { x: arrow.tox + this.tolerance, y: arrow.y + this.tolerance },
+          { x: arrow.x - this.tolerance, y: arrow.y + this.tolerance }
+        );
+      }
+      let angle = Math.atan2(arrow.toy - arrow.y, arrow.tox - arrow.x);
+
+      context.strokeStyle = "white";
+      //starting path of the arrow from the start square to the end square
+      //and drawing the stroke
+      context.beginPath();
+      context.moveTo(arrow.x, arrow.y);
+      context.lineTo(arrow.tox, arrow.toy);
+      context.lineWidth = 1;
+      context.stroke();
+
+      //starting a new path from the head of the arrow to one of the sides of
+      //the point
+      context.beginPath();
+      context.moveTo(arrow.tox, arrow.toy);
+      context.lineTo(
+        arrow.tox - headlen * Math.cos(angle - Math.PI / 7),
+        arrow.toy - headlen * Math.sin(angle - Math.PI / 7)
+      );
+
+      //path from the side point of the arrow, to the other side point
+      context.lineTo(
+        arrow.tox - headlen * Math.cos(angle + Math.PI / 7),
+        arrow.toy - headlen * Math.sin(angle + Math.PI / 7)
+      );
+
+      //path from the side point back to the tip of the arrow, and then
+      //again to the opposite side point
+      context.lineTo(arrow.tox, arrow.toy);
+      context.lineTo(
+        arrow.tox - headlen * Math.cos(angle - Math.PI / 7),
+        arrow.toy - headlen * Math.sin(angle - Math.PI / 7)
+      );
+
+      //draws the paths created above
+      context.stroke();
+      context.restore();
+    });
   }
 
-  mouseDownForActive(e) {
+  fourDots(tL, tR, bR, bL) {
+    const sides = [tL, tR, bR, bL];
+    for (let i = 0; i < sides.length; i++) {
+      context.beginPath();
+      context.arc(sides[i].x, sides[i].y, 4, 0, 2 * Math.PI, false);
+      context.fill();
+    }
+  }
+
+  mouseDownDragging(e) {
     if (config.mode === "pencil") return;
+
     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
     let smallestCircle = null;
     let smallestRect = null;
+    let smallestText = null;
 
-    rectMap.forEach((rect) => {
+    const checkRect = (rect) => {
       if (
         mouseX >= rect.x &&
         mouseX <= rect.x + rect.width &&
@@ -436,9 +453,9 @@ export class Shapes {
           smallestRect = rect;
         }
       }
-    });
+    };
 
-    for (const [_, sphere] of circleMap) {
+    const checkCircle = (sphere) => {
       const distance = Math.sqrt(
         (mouseX - sphere.x) ** 2 + (mouseY - sphere.y) ** 2
       );
@@ -447,99 +464,86 @@ export class Shapes {
       if (distance < sphere.xRadius && distance < sphere.yRadius) {
         if (
           smallestCircle === null ||
-          (sphere.xRadius < smallestCircle.xRadius &&
-            sphere.yRadius < smallestCircle.yRadius)
+          sphere.xRadius < smallestCircle.xRadius
         ) {
           smallestCircle = sphere;
         }
       }
-    }
+    };
 
-    if (!smallestRect && smallestCircle) {
-      smallestCircle.isDragging = true;
-      smallestCircle.isActive = true;
-      smallestCircle.offsetX = mouseX - smallestCircle.x;
-      smallestCircle.offsetY = mouseY - smallestCircle.y;
-    } else if (smallestRect && !smallestCircle) {
-      smallestRect.isDragging = true;
-      smallestRect.isActive = true;
-      smallestRect.offsetX = mouseX - smallestRect.x;
-      smallestRect.offsetY = mouseY - smallestRect.y;
-    } else if (smallestCircle && smallestRect) {
+    const checkText = (text) => {
       if (
-        smallestCircle.xRadius * 2 * smallestCircle.xRadius <
+        mouseX >= text.x &&
+        mouseX <= text.x + text.width &&
+        mouseY >= text.y &&
+        mouseY <= text.y + text.height
+      ) {
+        if (smallestText === null || text.width < smallestText.width) {
+          smallestText = text;
+        }
+      }
+    };
+
+    rectMap.forEach(checkRect);
+    circleMap.forEach(checkCircle);
+    textMap.forEach(checkText);
+
+    const setDragging = (obj) => {
+      obj.isDragging = true;
+      obj.isActive = true;
+      obj.offsetX = mouseX - obj.x;
+      obj.offsetY = mouseY - obj.y;
+    };
+
+    if (!smallestRect && !smallestText && smallestCircle) {
+      setDragging(smallestCircle);
+    } else if (smallestRect && !smallestCircle && !smallestText) {
+      setDragging(smallestRect);
+    } else if (smallestText && !smallestCircle && !smallestRect) {
+      setDragging(smallestText);
+    } else if (smallestCircle && smallestRect && !smallestText) {
+      if (
+        2 * smallestCircle.xRadius * 2 * smallestCircle.yRadius <
         smallestRect.width * smallestRect.height
       ) {
-        smallestCircle.isActive = true;
-        smallestCircle.isDragging = true;
-        smallestCircle.offsetX = mouseX - smallestCircle.x;
-        smallestCircle.offsetY = mouseY - smallestCircle.y;
+        setDragging(smallestCircle);
       } else {
-        smallestRect.isActive = true;
-        smallestRect.isDragging = true;
-        smallestRect.offsetX = mouseX - smallestRect.x;
-        smallestRect.offsetY = mouseY - smallestRect.y;
+        setDragging(smallestRect);
+      }
+    } else if (!smallestCircle && smallestRect && smallestText) {
+      if (
+        smallestRect.width * smallestRect.height <
+        smallestText.width * smallestText.height
+      ) {
+        setDragging(smallestRect);
+      } else {
+        setDragging(smallestText);
+      }
+    } else if (smallestCircle && !smallestRect && smallestText) {
+      if (
+        2 * smallestCircle.xRadius * 2 * smallestCircle.yRadius <
+        smallestText.width * smallestText.height
+      ) {
+        setDragging(smallestCircle);
+      } else {
+        setDragging(smallestText);
       }
     }
-  }
-
-  mouseDownforResizing(e) {}
-}
-
-export class Rectangle extends Shapes {
-  constructor(x, y, width = 100, height = 100) {
-    super();
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-
-    canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
-
-    canvas.addEventListener("mousemove", this.mouseMove.bind(this));
-    canvas.addEventListener("mousemove", this.mouseMoveforResizing.bind(this));
-
-    canvas.addEventListener("mouseup", this.mouseUp.bind(this));
-    canvas.addEventListener("mouseup", this.mouseUpforResizing.bind(this));
-  }
-
-  mouseMove(event) {
-    if (config.mode === "pencil") return;
-    rectMap.forEach((rect) => {
-      if (rect.isDragging) {
-        rect.isActive = true;
-        rect.x =
-          event.clientX - canvas.getBoundingClientRect().left - rect.offsetX;
-        rect.y =
-          event.clientY - canvas.getBoundingClientRect().top - rect.offsetY;
-        rect.draw();
-      }
-    });
-  }
-
-  mouseUp(e) {
-    if (config.mode === "pencil") return;
-    rectMap.forEach((rect) => {
-      if (rect.isDragging) {
-        rect.x = e.clientX - canvas.getBoundingClientRect().left - rect.offsetX;
-        rect.y = e.clientY - canvas.getBoundingClientRect().top - rect.offsetY;
-        rect.draw();
-        rect.isDragging = false;
-      }
-    });
   }
 
   mouseDownforResizing(e) {
     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-    let activeRect = null;
+
+    let square = null;
+    let circle = null;
+    let text = null;
 
     rectMap.forEach((rect) => {
       // Check for horizontal resizing
-      const leftEdge =
-        mouseX >= rect.x - this.tolerance && mouseX <= rect.x + this.tolerance;
+      const leftEdge = mouseX >= rect.x - this.tolerance && mouseX <= rect.x;
       const rightEdge =
-        mouseX >= rect.x + rect.width - this.tolerance &&
+        mouseX >= rect.x + rect.width &&
         mouseX <= rect.x + rect.width + this.tolerance;
       const verticalBounds =
         mouseY > rect.y + this.tolerance &&
@@ -548,7 +552,6 @@ export class Rectangle extends Shapes {
       if ((leftEdge || rightEdge) && verticalBounds) {
         rect.isActive = true;
         rect.horizontalResizing = true;
-        activeRect = rect;
       }
 
       // vertical resizing //
@@ -564,7 +567,6 @@ export class Rectangle extends Shapes {
       if ((withinTopEdge || withinBottomEdge) && withinHorizontalBounds) {
         rect.isActive = true;
         rect.verticalResizing = true;
-        activeRect = rect;
       }
 
       // Check for corners resize
@@ -600,350 +602,6 @@ export class Rectangle extends Shapes {
       ) {
         rect.isActive = true;
         rect.isResizing = true;
-        activeRect = rect;
-      }
-    });
-
-    // Prevent dragging if resizing
-    if (activeRect) {
-      this.isDragging = false;
-    } else {
-      // Fallback to dragging if no resizing active
-      this.mouseDownForActive(e);
-    }
-  }
-
-  mouseMoveforResizing(e) {
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-
-    rectMap.forEach((rect) => {
-      if (rect.horizontelResizing) {
-        const oldPosition = rect.x + rect.width;
-        const newX = mouseX > rect.x ? rect.x : mouseX;
-
-        rect.x = newX;
-        if (mouseX < oldPosition) {
-          rect.width = Math.abs(oldPosition - mouseX);
-        } else if (mouseX > oldPosition) rect.width = Math.abs(mouseX - rect.x); // Adjust width when mouseX is below rect.x
-
-        // rect.width = Math.abs(mouseX - rect.x); // Adjust width normally when mouseX is to the right
-
-        rect.draw();
-      }
-
-      if (rect.verticalResizing) {
-        const oldPosition = rect.y + rect.height;
-        const newY = mouseY > rect.y ? rect.y : mouseY;
-
-        rect.y = newY;
-        if (mouseY < oldPosition) {
-          rect.height = Math.abs(oldPosition - mouseY);
-        } else if (mouseY > oldPosition)
-          rect.height = Math.abs(mouseY - rect.y);
-
-        rect.draw();
-      }
-
-      if (rect.isResizing) {
-        rect.isActive = true;
-        rect.width = Math.abs(
-          e.clientX - canvas.getBoundingClientRect().left - rect.x
-        );
-        rect.height = Math.abs(
-          e.clientY - canvas.getBoundingClientRect().top - rect.y
-        );
-        rect.draw();
-      }
-    });
-  }
-
-  mouseUpforResizing() {
-    rectMap.forEach((rect) => {
-      rect.isActive = true;
-      rect.isResizing = false;
-      rect.verticalResizing = false;
-      rect.horizontelResizing = false;
-    });
-  }
-}
-
-export class Circle extends Shapes {
-  constructor(x, y, xRadius = 50, yRadius = 50) {
-    super();
-    this.x = x;
-    this.y = y;
-    this.xRadius = xRadius;
-    this.yRadius = yRadius;
-
-    // canvas.addEventListener("mousedown", this.mouseDown.bind(this));
-    canvas.addEventListener("mousemove", this.mouseMove.bind(this));
-    canvas.addEventListener("mouseup", this.mouseUp.bind(this));
-
-    canvas.addEventListener("mousedown", this.mouseDownResize.bind(this));
-    canvas.addEventListener("mousemove", this.mouseMoveResize.bind(this));
-    canvas.addEventListener("mouseup", this.mouseUpResize.bind(this));
-  }
-
-  // mouseDown(event) {
-  //   if (config.mode === "pencil") return;
-  //   const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-  //   const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-  //   let smallestCircle = null;
-
-  //   // Check if the mouse is inside any rectangle
-  //   circleMap.forEach((sphere) => {
-  //     const isInside = Math.sqrt(
-  //       (mouseX - sphere.x) ** 2 + (mouseY - sphere.y) ** 2
-  //     );
-
-  //     if (sphere.isActive) sphere.isActive = false;
-  //     if (isInside < sphere.xRadius && isInside < sphere.yRadius) {
-  //       if (
-  //         smallestCircle === null ||
-  //         sphere.xRadius * sphere.yRadius <
-  //           smallestCircle.xRadius * smallestCircle.yRadius
-  //       ) {
-  //         smallestCircle = sphere;
-  //       }
-  //     }
-  //     if (smallestCircle) {
-  //       smallestCircle.isActive = true;
-  //       smallestCircle.isDragging = true;
-  //       smallestCircle.offsetX = mouseX - smallestCircle.x;
-  //       smallestCircle.offsetY = mouseY - smallestCircle.y;
-  //       console.log(smallestCircle);
-  //     }
-  //   });
-  // }
-
-  mouseMove(event) {
-    if (config.mode === "pencil") return;
-    circleMap.forEach((arc) => {
-      if (arc.isDragging) {
-        arc.isActive = true;
-        arc.x =
-          event.clientX - canvas.getBoundingClientRect().left - arc.offsetX;
-        arc.y =
-          event.clientY - canvas.getBoundingClientRect().top - arc.offsetY;
-        this.draw();
-      }
-    });
-  }
-
-  mouseUp() {
-    circleMap.forEach((arc) => {
-      arc.isDragging = false;
-    });
-  }
-
-  mouseDownResize(e) {
-    if (config.mode === "pencil") return;
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-    const width = 10;
-    circleMap.forEach((arc) => {
-      const forXless = arc.x - arc.xRadius;
-      const forXmore = arc.x + arc.xRadius;
-      const forYless = arc.y - arc.yRadius;
-      const forYmore = arc.y + arc.yRadius;
-
-      //horizontel resizing
-      const leftEdge =
-        mouseX >= forXless - this.tolerance && mouseX <= forXless;
-      const rightEdge =
-        mouseX >= forXmore && mouseX <= forXmore + this.tolerance;
-      const verticalBounds =
-        mouseY >= forYless + this.tolerance &&
-        mouseY <= forYmore - this.tolerance;
-
-      if ((leftEdge || rightEdge) && verticalBounds) {
-        arc.isActive = true; // Set the circle as active
-        arc.horizontelResizing = true; // Set the horizontal resizing flag
-      }
-
-      //vertical resizing
-      const topEdge = mouseY >= forYless - this.tolerance && mouseY <= forYless;
-      const bottomEdge =
-        mouseY >= forYmore && mouseY <= forYmore + this.tolerance;
-      const horizontalBounds =
-        mouseX >= forXless + width && mouseX <= forXmore - width;
-
-      if ((topEdge || bottomEdge) && horizontalBounds) {
-        arc.isActive = true;
-        arc.verticalResizing = true; // set vertical resizing to true
-      }
-
-      //full resize
-      if (
-        // Top-left corner
-        (mouseX >= forXless &&
-          mouseX < forXless + this.tolerance &&
-          mouseY > forYless - this.tolerance &&
-          mouseY <= forYless) ||
-        // Top-right corner
-        (mouseX >= forXmore &&
-          mouseX < forXmore + this.tolerance &&
-          mouseY > forYless - this.tolerance &&
-          mouseY <= forYless) ||
-        // Bottom-left corner
-        (mouseX >= forXless - this.tolerance &&
-          mouseX <= forXless &&
-          mouseY >= forYmore &&
-          mouseY <= forYmore + this.tolerance) ||
-        // Bottom-right corner
-        (mouseX >= forXmore &&
-          mouseX <= forXmore + this.tolerance &&
-          mouseY >= forYmore &&
-          mouseY <= forYmore + this.tolerance)
-      ) {
-        arc.isActive = true;
-        arc.isResizing = true;
-      }
-    });
-  }
-
-  mouseMoveResize(e) {
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-    circleMap.forEach((arc) => {
-      if (arc.horizontelResizing) {
-        arc.isActive = true;
-        arc.xRadius = Math.abs(mouseX - arc.x);
-        arc.draw();
-      }
-      if (arc.verticalResizing) {
-        arc.isActive = true;
-        arc.yRadius = Math.abs(mouseY - arc.y);
-        arc.draw();
-      }
-      if (arc.isResizing) {
-        arc.isActive = true;
-        arc.xRadius = Math.abs(mouseX - arc.x);
-        arc.yRadius = Math.abs(mouseY - arc.y);
-        arc.draw();
-      }
-    });
-  }
-
-  mouseUpResize() {
-    circleMap.forEach((arc) => {
-      if (arc.horizontelResizing) {
-        arc.horizontelResizing = false;
-      }
-      if (arc.verticalResizing) {
-        arc.verticalResizing = false;
-      }
-      if (arc.isResizing) {
-        arc.isResizing = false;
-      }
-    });
-  }
-}
-
-export class Pencil extends Shapes {
-  constructor(start, end) {
-    super();
-    this.start = start;
-    this.end = end;
-  }
-}
-
-export class Text extends Shapes {
-  constructor(x, y, size = 20, content) {
-    super();
-    this.x = x;
-    this.y = y;
-    this.size = size;
-    this.content = content;
-    canvas.addEventListener("mousedown", this.mouseDown.bind(this));
-    canvas.addEventListener("mousemove", this.mouseMove.bind(this));
-    canvas.addEventListener("mouseup", this.mouseUp.bind(this));
-
-    canvas.addEventListener("mousedown", this.resizeParameters.bind(this));
-    canvas.addEventListener("mousemove", this.mouseMoveResize.bind(this));
-    canvas.addEventListener("mouseup", this.mouseUpResize.bind(this));
-  }
-
-  mouseDown(e) {
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-    textMap.forEach((text) => {
-      if (
-        mouseX >= text.x - this.tolerance &&
-        mouseX <= text.x + text.width &&
-        mouseY >= text.y - this.tolerance &&
-        mouseY <= text.x + text.height
-      ) {
-        text.isActive = true;
-        text.isDragging = true;
-        text.offsetX = mouseX - text.x;
-        text.offsetY = mouseY - text.y;
-        text.draw();
-      }
-    });
-  }
-
-  mouseMove(e) {
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-    textMap.forEach((text) => {
-      if (text.isDragging) {
-        text.x = mouseX - text.offsetX;
-        text.y = mouseY - text.offsetY;
-        text.draw();
-      }
-    });
-  }
-
-  mouseUp(e) {
-    textMap.forEach((text) => {
-      if (text.isDragging) {
-        text.isDragging = false;
-      }
-    });
-  }
-
-  resizeParameters(e) {
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-
-    // horizontel
-    textMap.forEach((text) => {
-      const left = mouseX >= text.x - this.tolerance && mouseX <= text.x;
-      const right =
-        mouseX >= text.x + text.width &&
-        mouseX <= text.x + text.width + this.tolerance;
-      const topBottom =
-        mouseY >= text.y - 2.5 * text.tolerance &&
-        mouseY <= text.y + text.height - this.tolerance;
-
-      if ((left || right) && topBottom) {
-        text.horizontalResizing = true;
-        text.isActive = true;
-      }
-    });
-  }
-  mouseMoveResize(e) {
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-    textMap.forEach((text) => {
-      let initialMouseX = 0;
-      let initialSize = 0;
-      if (text.horizontalResizing) {
-        // text.width = Math.abs(mouseX - text.x);
-        const deltaX = mouseX - initialMouseX;
-        const newSize = initialSize + deltaX / 15; // Adjust this divisor to control sensitivity
-        text.size = Math.max(newSize, 10);
-        text.draw();
-      }
-    });
-  }
-
-  mouseUpResize(e) {
-    textMap.forEach((text) => {
-      if (text.horizontalResizing) {
-        text.horizontalResizing = false;
       }
     });
   }

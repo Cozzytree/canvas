@@ -10,13 +10,14 @@
   <body>
     <div id="app" class="w-screen overflow-x-hidden flex relative">
       <main
-        class="w-[42px] h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col absolute top-10 left-2"
+        class="w-[42px] h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col absolute top-10 left-2 p-[2px]"
       >
         <button
           id="freeMode"
-          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
+          class="cursor-pointer flex justify-center items-center"
         >
           <img
+            class="hover:bg-zinc-600 transition-all duration-150 w-[40px] h-[40px] px-2 rounded-sm"
             src="/cursor.svg"
             loading="lazy"
             width="50px"
@@ -36,7 +37,16 @@
           class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
           id="newCircle"
         >
-          <div class="circle"></div>
+          <div
+            class="circle hover:bg-zinc-600 transition-all duration-150"
+          ></div>
+        </button>
+
+        <button
+          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
+          id="lineArrow"
+        >
+          &seArr;
         </button>
 
         <button
