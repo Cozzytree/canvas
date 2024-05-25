@@ -1,25 +1,19 @@
+"use strict";
+
 import { changeStyle } from "./events.js";
 import { config } from "./config.js";
-import {
-  canvas,
-  pencil,
-  context,
-  // canvasTextContext,
-  // canvasText,
-} from "./selectors.js";
+import { canvas, pencil, context } from "./selectors.js";
 
-// for pencil drawing
-
-export const circleMap = new Map();
-export const rectMap = new Map();
-export const pencilMap = new Map();
-export const textMap = new Map();
-export const arrows = new Map();
+const circleMap = new Map();
+const rectMap = new Map();
+const pencilMap = new Map();
+const textMap = new Map();
+const arrows = new Map();
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-export class Shapes {
+class Shapes {
   constructor() {
     this.tolerance = 6.5;
     this.lineWidth = 2;
@@ -42,14 +36,26 @@ export class Shapes {
       const clickX = e.clientX - canvas.getBoundingClientRect().left;
       const clickY = e.clientY - canvas.getBoundingClientRect().top;
       if (config.mode === "pencil") return;
+
       // Reset all shapes to inactive
-      rectMap.forEach((rect) => (rect.isActive = false));
-      circleMap.forEach((circle) => (circle.isActive = false));
-      textMap.forEach((text) => (text.isActive = false));
+      const allShapes = [
+        ...rectMap.values(),
+        ...circleMap.values(),
+        ...arrows.values(),
+        ...textMap.values(),
+      ];
+      allShapes.forEach((shape) => {
+        shape.isActive = false;
+      });
+      // rectMap.forEach((rect) => (rect.isActive = false));
+      // circleMap.forEach((circle) => (circle.isActive = false));
+      // textMap.forEach((text) => (text.isActive = false));
+      // arrows.forEach((arrow) => (arrow.isActive = false));
 
       let circle = null;
       let square = null;
       let text = null;
+      let arrow = null;
 
       // Check if the click is within any rectangle
       for (const [_, rect] of rectMap) {
@@ -93,12 +99,31 @@ export class Shapes {
         }
       }
 
-      if (circle && !square && !text) {
+      for (const [_, arr] of arrows) {
+        if (
+          clickX >= arr.x - this.tolerance &&
+          clickX <= arr.tox + this.tolerance &&
+          clickY >= arr.y - this.tolerance &&
+          clickY <= arr.toy + this.tolerance
+        ) {
+          if (arrow === null || arr.tox - arr.x < arrow.tox - arrow.x) {
+            arrow = arr;
+          }
+          // arr.isActive = true;
+          // arr.isDragging = true;
+          // arr.dragOffsetX = mouseX - arr.x;
+          // arr.dragOffsetY = mouseY - arr.y;
+        }
+      }
+
+      if (circle && !square && !text && !arrow) {
         circle.isActive = true;
-      } else if (!circle && square && !text) {
+      } else if (!circle && square && !text && !arrow) {
         square.isActive = true;
-      } else if (!circle && !square && text) {
+      } else if (!circle && !square && text && !arrow) {
         text.isActive = true;
+      } else if (!circle && !square && !text && arrow) {
+        arrow.isActive = true;
       } else if (circle && square && !text) {
         if (square.width > 2 * circle.xRadius) {
           circle.isActive = true;
@@ -285,30 +310,30 @@ export class Shapes {
       context.stroke();
     });
 
-    context.save();
-    pencilMap.forEach((pencil) => {
-      context.beginPath();
-      pencil.forEach((coor, index) => {
-        if (index === 0) {
-          context.moveTo(coor.x, coor.y); // Move to the first point
-        } else {
-          // Use quadraticCurveTo for drawing curved lines
-          const prevCoor = pencil[index - 1];
-          const cx = (coor.x + prevCoor.x) / 2; // Control point x-coordinate
-          const cy = (coor.y + prevCoor.y) / 2; // Control point y-coordinate
-          context.quadraticCurveTo(prevCoor.x, prevCoor.y, cx, cy); // Draw a quadratic curve
-        }
-      });
+    // context.save();
+    // pencilMap.forEach((pencil) => {
+    //   context.beginPath();
+    //   pencil.forEach((coor, index) => {
+    //     if (index === 0) {
+    //       context.moveTo(coor.x, coor.y); // Move to the first point
+    //     } else {
+    //       // Use quadraticCurveTo for drawing curved lines
+    //       const prevCoor = pencil[index - 1];
+    //       const cx = (coor.x + prevCoor.x) / 2; // Control point x-coordinate
+    //       const cy = (coor.y + prevCoor.y) / 2; // Control point y-coordinate
+    //       context.quadraticCurveTo(prevCoor.x, prevCoor.y, cx, cy); // Draw a quadratic curve
+    //     }
+    //   });
 
-      // Set line properties
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      context.lineWidth = 1.6;
-      context.strokeStyle = "#dcdcdc";
-      context.stroke();
-      context.closePath();
-    });
-    context.restore();
+    //   // Set line properties
+    //   context.lineCap = "round";
+    //   context.lineJoin = "round";
+    //   context.lineWidth = 1.6;
+    //   context.strokeStyle = "#dcdcdc";
+    //   context.stroke();
+    //   context.closePath();
+    // });
+    // context.restore();
     // context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
 
     context.save();
@@ -369,56 +394,108 @@ export class Shapes {
         context.beginPath();
         context.strokeStyle = "rgb(2, 211, 134)";
         context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
-        // context.fillText = "";
-        context.moveTo(arrow.x - this.tolerance, arrow.y - this.tolerance);
-        context.lineTo(arrow.tox + this.tolerance, arrow.toy - this.tolerance);
-        context.lineTo(arrow.tox + this.tolerance, arrow.y + this.tolerance);
-        context.lineTo(arrow.x - this.tolerance, arrow.y + this.tolerance);
-        context.closePath();
-        context.stroke();
 
-        this.fourDots(
-          { x: arrow.x - this.tolerance, y: arrow.y - this.tolerance },
-          { x: arrow.tox + this.tolerance, y: arrow.y - this.tolerance },
-          { x: arrow.tox + this.tolerance, y: arrow.y + this.tolerance },
-          { x: arrow.x - this.tolerance, y: arrow.y + this.tolerance }
+        context.beginPath();
+        context.arc(
+          arrow.x - this.tolerance,
+          arrow.y,
+          4,
+          0,
+          2 * Math.PI,
+          false
         );
+        context.fill();
+
+        context.beginPath();
+        if (Math.abs(arrow.y - arrow.toy) <= 10) {
+          context.arc(
+            arrow.tox + this.tolerance,
+            arrow.toy,
+            3,
+            0,
+            2 * Math.PI,
+            false
+          );
+        } else if (arrow.y > arrow.toy) {
+          context.arc(
+            arrow.tox,
+            arrow.toy - this.tolerance,
+            3,
+            0,
+            2 * Math.PI,
+            false
+          );
+        } else {
+          context.arc(
+            arrow.tox,
+            arrow.toy + this.tolerance,
+            3,
+            0,
+            2 * Math.PI,
+            false
+          );
+        }
+
+        context.fill();
+      } else {
+        context.strokeStyle = "white";
       }
+      let headlen = 7; // Length of the arrowhead
+
+      // Calculate the angle for the arrowhead
       let angle = Math.atan2(arrow.toy - arrow.y, arrow.tox - arrow.x);
 
-      context.strokeStyle = "white";
-      //starting path of the arrow from the start square to the end square
-      //and drawing the stroke
+      // Begin drawing the main line
       context.beginPath();
       context.moveTo(arrow.x, arrow.y);
-      context.lineTo(arrow.tox, arrow.toy);
-      context.lineWidth = 1;
-      context.stroke();
 
-      //starting a new path from the head of the arrow to one of the sides of
-      //the point
-      context.beginPath();
-      context.moveTo(arrow.tox, arrow.toy);
-      context.lineTo(
-        arrow.tox - headlen * Math.cos(angle - Math.PI / 7),
-        arrow.toy - headlen * Math.sin(angle - Math.PI / 7)
-      );
+      if (arrow.x !== arrow.tox) {
+        // Calculate the perpendicular point
+        let midpointX = arrow.tox;
+        let midpointY = arrow.y;
 
-      //path from the side point of the arrow, to the other side point
-      context.lineTo(
-        arrow.tox - headlen * Math.cos(angle + Math.PI / 7),
-        arrow.toy - headlen * Math.sin(angle + Math.PI / 7)
-      );
+        // Draw line to the midpoint
+        context.lineTo(midpointX, midpointY);
+        // Draw line from the midpoint to the endpoint
+        context.lineTo(arrow.tox, arrow.toy);
 
-      //path from the side point back to the tip of the arrow, and then
-      //again to the opposite side point
-      context.lineTo(arrow.tox, arrow.toy);
-      context.lineTo(
-        arrow.tox - headlen * Math.cos(angle - Math.PI / 7),
-        arrow.toy - headlen * Math.sin(angle - Math.PI / 7)
-      );
+        context.lineWidth = 2;
+        context.stroke();
 
-      //draws the paths created above
+        // Draw the arrowhead
+        context.beginPath();
+        context.moveTo(arrow.tox, arrow.toy);
+
+        context.lineWidth = 2;
+        context.stroke();
+        if (midpointY === arrow.toy) {
+          // // Draw the arrowhead
+          context.beginPath();
+          context.moveTo(arrow.tox, arrow.toy);
+          context.lineTo(
+            arrow.tox - headlen * Math.cos(angle - Math.PI / 7),
+            arrow.toy - headlen * Math.sin(angle - Math.PI / 7)
+          );
+          context.lineTo(
+            arrow.tox - headlen * Math.cos(angle + Math.PI / 7),
+            arrow.toy - headlen * Math.sin(angle + Math.PI / 7)
+          );
+          context.lineTo(arrow.tox, arrow.toy);
+        } else if (midpointY > arrow.toy) {
+          context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
+          context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
+          context.lineTo(arrow.tox, arrow.toy);
+        } else if (midpointY < arrow.toy) {
+          context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
+          context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
+          context.lineTo(arrow.tox, arrow.toy);
+        }
+      } else {
+        // If x is equal to tox, draw a straight line to the endpoint
+        context.lineTo(arrow.tox, arrow.toy);
+      }
+
+      // Draw the arrowhead outline
       context.stroke();
       context.restore();
     });
@@ -434,6 +511,7 @@ export class Shapes {
   }
 
   mouseDownDragging(e) {
+    // if (this.isResizing) return;
     if (config.mode === "pencil") return;
 
     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
@@ -546,8 +624,8 @@ export class Shapes {
         mouseX >= rect.x + rect.width &&
         mouseX <= rect.x + rect.width + this.tolerance;
       const verticalBounds =
-        mouseY > rect.y + this.tolerance &&
-        mouseY < rect.y + rect.height - this.tolerance;
+        mouseY >= rect.y + this.tolerance &&
+        mouseY <= rect.y + rect.height - this.tolerance;
 
       if ((leftEdge || rightEdge) && verticalBounds) {
         rect.isActive = true;
@@ -608,3 +686,4 @@ export class Shapes {
 }
 
 new Shapes();
+export { Shapes, circleMap, rectMap, pencilMap, textMap, arrows };

@@ -8,6 +8,7 @@ export class Circle extends Shapes {
     this.y = y;
     this.xRadius = xRadius;
     this.yRadius = yRadius;
+    this.type = "sphere";
 
     // canvas.addEventListener("mousedown", this.mouseDown.bind(this));
     canvas.addEventListener("mousemove", this.mouseMove.bind(this));

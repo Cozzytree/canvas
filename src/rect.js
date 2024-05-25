@@ -8,6 +8,7 @@ export class Rectangle extends Shapes {
     this.y = y;
     this.width = width;
     this.height = height;
+    this.type = "rect";
 
     // canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
 

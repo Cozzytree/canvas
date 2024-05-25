@@ -6,5 +6,6 @@ export class Pencil extends Shapes {
     super();
     this.start = start;
     this.end = end;
+    this.type = "pencil";
   }
 }
