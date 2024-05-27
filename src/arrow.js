@@ -12,11 +12,9 @@ export class Arrows extends Shapes {
     this.isDragging = false;
     this.type = "arrow";
 
-    this.mouseDownListener = this.mouseD.bind(this);
     this.mouseMoveListener = this.mouseMd.bind(this);
     this.mouseUpListener = this.mousep.bind(this);
 
-    canvas.addEventListener("mousedown", this.mouseDownListener);
     canvas.addEventListener("mousemove", this.mouseMoveListener);
     canvas.addEventListener("mouseup", this.mouseUpListener);
   }
@@ -25,41 +23,75 @@ export class Arrows extends Shapes {
     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
+    const withinBounds = (x1, y1, x2, y2, tolerance = 0) => {
+      return (
+        mouseX >= x1 - tolerance &&
+        mouseX <= x2 + tolerance &&
+        mouseY >= y1 - tolerance &&
+        mouseY <= y2 + tolerance
+      );
+    };
+
     arrows.forEach((arrow) => {
       if (
-        mouseX >= arrow.tox &&
-        mouseX <= arrow.tox + this.tolerance &&
-        mouseY >= arrow.toy &&
-        mouseY <= arrow.toy + this.tolerance
+        withinBounds(arrow.tox, arrow.toy, arrow.tox, arrow.toy, this.tolerance)
       ) {
         arrow.isActive = true;
         arrow.isResizing = true;
+        // return;
       }
+
       if (arrow.x < arrow.tox) {
-        if (
-          mouseX >= arrow.x - this.tolerance &&
-          mouseX <= arrow.tox + this.tolerance &&
-          mouseY >= arrow.y - this.tolerance &&
-          mouseY <= arrow.toy + this.tolerance &&
-          !arrow.isActive
-        ) {
+        if (arrow.y > arrow.toy) {
+          if (withinBounds(arrow.x, arrow.toy, arrow.tox, arrow.y)) {
+            arrow.isActive = true;
+            arrow.isDragging = true;
+            arrow.dragOffsetX = mouseX - arrow.x;
+            arrow.dragOffsetY = mouseY - arrow.y;
+            return;
+          }
+        } else if (arrow.y < arrow.toy) {
+          if (
+            withinBounds(arrow.x, arrow.y, arrow.tox, arrow.toy, this.tolerance)
+          ) {
+            arrow.isActive = true;
+            arrow.isDragging = true;
+            arrow.dragOffsetX = mouseX - arrow.x;
+            arrow.dragOffsetY = mouseY - arrow.y;
+            return;
+          }
+        } else {
           arrow.isActive = true;
           arrow.isDragging = true;
           arrow.dragOffsetX = mouseX - arrow.x;
           arrow.dragOffsetY = mouseY - arrow.y;
+          return;
         }
       } else if (arrow.x > arrow.tox) {
-        if (
-          mouseX <= arrow.x + this.tolerance &&
-          mouseX >= arrow.tox - this.tolerance &&
-          mouseY >= arrow.y - this.tolerance &&
-          mouseY <= arrow.toy + this.tolerance &&
-          !arrow.isActive
-        ) {
+        if (arrow.y > arrow.toy) {
+          if (withinBounds(arrow.tox, arrow.toy, arrow.x, arrow.y)) {
+            arrow.isActive = true;
+            arrow.isDragging = true;
+            arrow.dragOffsetX = mouseX - arrow.x;
+            arrow.dragOffsetY = mouseY - arrow.y;
+            return;
+          }
+        } else if (arrow.y < arrow.toy) {
+          if (
+            withinBounds(arrow.tox, arrow.y, arrow.x, arrow.toy, this.tolerance)
+          ) {
+            arrow.isActive = true;
+            arrow.isDragging = true;
+            arrow.dragOffsetX = mouseX - arrow.x;
+            arrow.dragOffsetY = mouseY - arrow.y;
+            return;
+          }
+        } else {
           arrow.isActive = true;
           arrow.isDragging = true;
           arrow.dragOffsetX = mouseX - arrow.x;
           arrow.dragOffsetY = mouseY - arrow.y;
+          return;
         }
       }
     });

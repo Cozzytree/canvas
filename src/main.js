@@ -200,9 +200,12 @@ class Shapes {
       }
     });
 
-    canvas.addEventListener("mousedown", this.mouseDownDragging.bind(this));
+    canvas.addEventListener(
+      "mousedown",
+      this.mouseDownDragAndResize.bind(this)
+    );
 
-    canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
+    // canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
   }
 
   draw() {
@@ -468,7 +471,8 @@ class Shapes {
 
         context.lineWidth = 2;
         context.stroke();
-        if (midpointY === arrow.toy) {
+
+        if (Math.abs(midpointY - arrow.toy) <= 10) {
           // // Draw the arrowhead
           context.beginPath();
           context.moveTo(arrow.tox, arrow.toy);
@@ -510,15 +514,177 @@ class Shapes {
     }
   }
 
-  mouseDownDragging(e) {
+  mouseDownDragAndResize(e) {
     // if (this.isResizing) return;
     if (config.mode === "pencil") return;
-
+    let isResizing = false;
     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+
+    // rect resize
+    rectMap.forEach((rect) => {
+      // Check for horizontal resizing
+      const leftEdge = mouseX >= rect.x - this.tolerance && mouseX <= rect.x;
+      const rightEdge =
+        mouseX >= rect.x + rect.width &&
+        mouseX <= rect.x + rect.width + this.tolerance;
+      const verticalBounds =
+        mouseY >= rect.y + this.tolerance &&
+        mouseY <= rect.y + rect.height - this.tolerance;
+
+      if ((leftEdge || rightEdge) && verticalBounds) {
+        rect.isActive = true;
+        rect.horizontalResizing = true;
+        isResizing = true;
+        return;
+      }
+
+      // vertical resizing //
+      const withinTopEdge =
+        mouseY >= rect.y - this.tolerance && mouseY <= rect.y + this.tolerance;
+      const withinBottomEdge =
+        mouseY >= rect.y + rect.height - this.tolerance &&
+        mouseY <= rect.y + rect.height + this.tolerance;
+      const withinHorizontalBounds =
+        mouseX > rect.x + this.tolerance &&
+        mouseX < rect.x + rect.width - this.tolerance;
+
+      if ((withinTopEdge || withinBottomEdge) && withinHorizontalBounds) {
+        rect.isActive = true;
+        rect.verticalResizing = true;
+        isResizing = true;
+        return;
+      }
+
+      // Check for corners resize
+      const withinTopLeftCorner =
+        mouseX >= rect.x - this.tolerance &&
+        mouseX <= rect.x + this.tolerance &&
+        mouseY >= rect.y - this.tolerance &&
+        mouseY <= rect.y + this.tolerance;
+
+      const withinTopRightCorner =
+        mouseX >= rect.x + rect.width - this.tolerance &&
+        mouseX <= rect.x + rect.width + this.tolerance &&
+        mouseY >= rect.y - this.tolerance &&
+        mouseY <= rect.y + this.tolerance;
+
+      const withinBottomLeftCorner =
+        mouseX >= rect.x - this.tolerance &&
+        mouseX <= rect.x + this.tolerance &&
+        mouseY >= rect.y + rect.height - this.tolerance &&
+        mouseY <= rect.y + rect.height + this.tolerance;
+
+      const withinBottomRightCorner =
+        mouseX >= rect.x + rect.width - this.tolerance &&
+        mouseX <= rect.x + rect.width + this.tolerance &&
+        mouseY >= rect.y + rect.height - this.tolerance &&
+        mouseY <= rect.y + rect.height + this.tolerance;
+
+      if (
+        withinTopLeftCorner ||
+        withinTopRightCorner ||
+        withinBottomLeftCorner ||
+        withinBottomRightCorner
+      ) {
+        rect.isActive = true;
+        rect.isResizing = true;
+        isResizing = true;
+        return;
+      }
+    });
+
+    // arrow resize
+    const withinBounds = (x1, y1, x2, y2, tolerance = 0) => {
+      return (
+        mouseX >= x1 - tolerance &&
+        mouseX <= x2 + tolerance &&
+        mouseY >= y1 - tolerance &&
+        mouseY <= y2 + tolerance
+      );
+    };
+    arrows.forEach((arrow) => {
+      if (
+        withinBounds(arrow.tox, arrow.toy, arrow.tox, arrow.toy, this.tolerance)
+      ) {
+        arrow.isActive = true;
+        arrow.isResizing = true;
+        isResizing = true;
+        return;
+      }
+    });
+
+    // sphere resize
+    circleMap.forEach((arc) => {
+      const forXless = arc.x - arc.xRadius;
+      const forXmore = arc.x + arc.xRadius;
+      const forYless = arc.y - arc.yRadius;
+      const forYmore = arc.y + arc.yRadius;
+
+      //horizontel resizing
+      const leftEdge =
+        mouseX >= forXless - this.tolerance && mouseX <= forXless;
+      const rightEdge =
+        mouseX >= forXmore && mouseX <= forXmore + this.tolerance;
+      const verticalBounds =
+        mouseY >= forYless + this.tolerance &&
+        mouseY <= forYmore - this.tolerance;
+
+      if ((leftEdge || rightEdge) && verticalBounds) {
+        arc.isActive = true; // Set the circle as active
+        arc.horizontelResizing = true; // Set the horizontal resizing flag
+        isResizing = true;
+      }
+
+      //vertical resizing
+      const topEdge = mouseY >= forYless - this.tolerance && mouseY <= forYless;
+      const bottomEdge =
+        mouseY >= forYmore && mouseY <= forYmore + this.tolerance;
+      const horizontalBounds =
+        mouseX >= forXless + this.tolerance &&
+        mouseX <= forXmore - this.tolerance;
+
+      if ((topEdge || bottomEdge) && horizontalBounds) {
+        arc.isActive = true;
+        arc.verticalResizing = true; // set vertical resizing to true
+        isResizing = true;
+      }
+
+      //full resize
+      if (
+        // Top-left corner
+        (mouseX >= forXless &&
+          mouseX < forXless + this.tolerance &&
+          mouseY > forYless - this.tolerance &&
+          mouseY <= forYless) ||
+        // Top-right corner
+        (mouseX >= forXmore &&
+          mouseX < forXmore + this.tolerance &&
+          mouseY > forYless - this.tolerance &&
+          mouseY <= forYless) ||
+        // Bottom-left corner
+        (mouseX >= forXless - this.tolerance &&
+          mouseX <= forXless &&
+          mouseY >= forYmore &&
+          mouseY <= forYmore + this.tolerance) ||
+        // Bottom-right corner
+        (mouseX >= forXmore &&
+          mouseX <= forXmore + this.tolerance &&
+          mouseY >= forYmore &&
+          mouseY <= forYmore + this.tolerance)
+      ) {
+        arc.isActive = true;
+        arc.isResizing = true;
+        isResizing = true;
+      }
+    });
+
+    if (isResizing) return;
+
     let smallestCircle = null;
     let smallestRect = null;
     let smallestText = null;
+    let arr = null;
 
     const checkRect = (rect) => {
       if (
@@ -562,9 +728,22 @@ class Shapes {
       }
     };
 
+    const arrow = (arrow) => {
+      if (
+        mouseX >= arrow.x &&
+        mouseX <= arrow.tox &&
+        mouseY >= arrow.y - this.tolerance &&
+        mouseY <= arrow.y + this.tolerance
+      ) {
+        arr = arrow;
+        console.log(arr);
+      }
+    };
+
     rectMap.forEach(checkRect);
     circleMap.forEach(checkCircle);
     textMap.forEach(checkText);
+    arrows.forEach(arrow);
 
     const setDragging = (obj) => {
       obj.isDragging = true;
@@ -575,18 +754,29 @@ class Shapes {
 
     if (!smallestRect && !smallestText && smallestCircle) {
       setDragging(smallestCircle);
+      return;
     } else if (smallestRect && !smallestCircle && !smallestText) {
       setDragging(smallestRect);
+      return;
     } else if (smallestText && !smallestCircle && !smallestRect) {
       setDragging(smallestText);
+      return;
+    } else if (arr && !smallestCircle && !smallestRect && !smallestText) {
+      arrow.isActive = true;
+      arrow.isDragging = true;
+      arrow.dragOffsetX = mouseX - arrow.x;
+      arrow.dragOffsetY = mouseY - arrow.y;
+      return;
     } else if (smallestCircle && smallestRect && !smallestText) {
       if (
         2 * smallestCircle.xRadius * 2 * smallestCircle.yRadius <
         smallestRect.width * smallestRect.height
       ) {
         setDragging(smallestCircle);
+        return;
       } else {
         setDragging(smallestRect);
+        return;
       }
     } else if (!smallestCircle && smallestRect && smallestText) {
       if (
@@ -594,8 +784,10 @@ class Shapes {
         smallestText.width * smallestText.height
       ) {
         setDragging(smallestRect);
+        return;
       } else {
         setDragging(smallestText);
+        return;
       }
     } else if (smallestCircle && !smallestRect && smallestText) {
       if (
@@ -603,86 +795,88 @@ class Shapes {
         smallestText.width * smallestText.height
       ) {
         setDragging(smallestCircle);
+        return;
       } else {
         setDragging(smallestText);
+        return;
       }
     }
   }
 
-  mouseDownforResizing(e) {
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+  // mouseDownforResizing(e) {
+  //   const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+  //   const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
-    let square = null;
-    let circle = null;
-    let text = null;
+  //   let square = null;
+  //   let circle = null;
+  //   let text = null;
 
-    rectMap.forEach((rect) => {
-      // Check for horizontal resizing
-      const leftEdge = mouseX >= rect.x - this.tolerance && mouseX <= rect.x;
-      const rightEdge =
-        mouseX >= rect.x + rect.width &&
-        mouseX <= rect.x + rect.width + this.tolerance;
-      const verticalBounds =
-        mouseY >= rect.y + this.tolerance &&
-        mouseY <= rect.y + rect.height - this.tolerance;
+  //   rectMap.forEach((rect) => {
+  //     // Check for horizontal resizing
+  //     const leftEdge = mouseX >= rect.x - this.tolerance && mouseX <= rect.x;
+  //     const rightEdge =
+  //       mouseX >= rect.x + rect.width &&
+  //       mouseX <= rect.x + rect.width + this.tolerance;
+  //     const verticalBounds =
+  //       mouseY >= rect.y + this.tolerance &&
+  //       mouseY <= rect.y + rect.height - this.tolerance;
 
-      if ((leftEdge || rightEdge) && verticalBounds) {
-        rect.isActive = true;
-        rect.horizontalResizing = true;
-      }
+  //     if ((leftEdge || rightEdge) && verticalBounds) {
+  //       rect.isActive = true;
+  //       rect.horizontalResizing = true;
+  //     }
 
-      // vertical resizing //
-      const withinTopEdge =
-        mouseY >= rect.y - this.tolerance && mouseY <= rect.y + this.tolerance;
-      const withinBottomEdge =
-        mouseY >= rect.y + rect.height - this.tolerance &&
-        mouseY <= rect.y + rect.height + this.tolerance;
-      const withinHorizontalBounds =
-        mouseX > rect.x + this.tolerance &&
-        mouseX < rect.x + rect.width - this.tolerance;
+  //     // vertical resizing //
+  //     const withinTopEdge =
+  //       mouseY >= rect.y - this.tolerance && mouseY <= rect.y + this.tolerance;
+  //     const withinBottomEdge =
+  //       mouseY >= rect.y + rect.height - this.tolerance &&
+  //       mouseY <= rect.y + rect.height + this.tolerance;
+  //     const withinHorizontalBounds =
+  //       mouseX > rect.x + this.tolerance &&
+  //       mouseX < rect.x + rect.width - this.tolerance;
 
-      if ((withinTopEdge || withinBottomEdge) && withinHorizontalBounds) {
-        rect.isActive = true;
-        rect.verticalResizing = true;
-      }
+  //     if ((withinTopEdge || withinBottomEdge) && withinHorizontalBounds) {
+  //       rect.isActive = true;
+  //       rect.verticalResizing = true;
+  //     }
 
-      // Check for corners resize
-      const withinTopLeftCorner =
-        mouseX >= rect.x - this.tolerance &&
-        mouseX <= rect.x + this.tolerance &&
-        mouseY >= rect.y - this.tolerance &&
-        mouseY <= rect.y + this.tolerance;
+  //     // Check for corners resize
+  //     const withinTopLeftCorner =
+  //       mouseX >= rect.x - this.tolerance &&
+  //       mouseX <= rect.x + this.tolerance &&
+  //       mouseY >= rect.y - this.tolerance &&
+  //       mouseY <= rect.y + this.tolerance;
 
-      const withinTopRightCorner =
-        mouseX >= rect.x + rect.width - this.tolerance &&
-        mouseX <= rect.x + rect.width + this.tolerance &&
-        mouseY >= rect.y - this.tolerance &&
-        mouseY <= rect.y + this.tolerance;
+  //     const withinTopRightCorner =
+  //       mouseX >= rect.x + rect.width - this.tolerance &&
+  //       mouseX <= rect.x + rect.width + this.tolerance &&
+  //       mouseY >= rect.y - this.tolerance &&
+  //       mouseY <= rect.y + this.tolerance;
 
-      const withinBottomLeftCorner =
-        mouseX >= rect.x - this.tolerance &&
-        mouseX <= rect.x + this.tolerance &&
-        mouseY >= rect.y + rect.height - this.tolerance &&
-        mouseY <= rect.y + rect.height + this.tolerance;
+  //     const withinBottomLeftCorner =
+  //       mouseX >= rect.x - this.tolerance &&
+  //       mouseX <= rect.x + this.tolerance &&
+  //       mouseY >= rect.y + rect.height - this.tolerance &&
+  //       mouseY <= rect.y + rect.height + this.tolerance;
 
-      const withinBottomRightCorner =
-        mouseX >= rect.x + rect.width - this.tolerance &&
-        mouseX <= rect.x + rect.width + this.tolerance &&
-        mouseY >= rect.y + rect.height - this.tolerance &&
-        mouseY <= rect.y + rect.height + this.tolerance;
+  //     const withinBottomRightCorner =
+  //       mouseX >= rect.x + rect.width - this.tolerance &&
+  //       mouseX <= rect.x + rect.width + this.tolerance &&
+  //       mouseY >= rect.y + rect.height - this.tolerance &&
+  //       mouseY <= rect.y + rect.height + this.tolerance;
 
-      if (
-        withinTopLeftCorner ||
-        withinTopRightCorner ||
-        withinBottomLeftCorner ||
-        withinBottomRightCorner
-      ) {
-        rect.isActive = true;
-        rect.isResizing = true;
-      }
-    });
-  }
+  //     if (
+  //       withinTopLeftCorner ||
+  //       withinTopRightCorner ||
+  //       withinBottomLeftCorner ||
+  //       withinBottomRightCorner
+  //     ) {
+  //       rect.isActive = true;
+  //       rect.isResizing = true;
+  //     }
+  //   });
+  // }
 }
 
 new Shapes();
