@@ -1,4 +1,4 @@
-import { Shapes, rectMap } from "./main";
+import { Shapes, arrows, rectMap } from "./main";
 import { config } from "./config";
 
 export class Rectangle extends Shapes {
@@ -9,6 +9,7 @@ export class Rectangle extends Shapes {
     this.width = width;
     this.height = height;
     this.type = "rect";
+    this.pointTo = null;
 
     // canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
 
@@ -19,15 +20,20 @@ export class Rectangle extends Shapes {
     canvas.addEventListener("mouseup", this.mouseUpforResizing.bind(this));
   }
 
-  mouseMove(event) {
+  mouseMove(e) {
     if (config.mode === "pencil") return;
+    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
     rectMap.forEach((rect) => {
       if (rect.isDragging) {
         rect.isActive = true;
-        rect.x =
-          event.clientX - canvas.getBoundingClientRect().left - rect.offsetX;
-        rect.y =
-          event.clientY - canvas.getBoundingClientRect().top - rect.offsetY;
+        rect.x = mouseX - rect.offsetX;
+        rect.y = mouseY - rect.offsetY;
+        if (rect.pointTo) {
+          let arc = arrows.get(rect.pointTo);
+          arc.tox = rect.x;
+          arc.toy = rect.y;
+        }
         rect.draw();
       }
     });

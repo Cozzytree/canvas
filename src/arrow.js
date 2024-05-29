@@ -1,4 +1,4 @@
-import { Shapes, arrows } from "./main";
+import { Shapes, arrows, rectMap } from "./main";
 import { canvas, context } from "./selectors";
 
 export class Arrows extends Shapes {
@@ -124,13 +124,27 @@ export class Arrows extends Shapes {
   }
 
   mousep(e) {
-    arrows.forEach((arrow) => {
+    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+
+    arrows.forEach((arrow, key) => {
       if (arrow.isDragging) {
         arrow.isDragging = false;
       }
       if (arrow.isResizing) {
         arrow.isResizing = false;
-        console.log(arrow);
+        rectMap.forEach((rect) => {
+          if (
+            mouseX >= rect.x - this.tolerance ||
+            mouseX <= rect.x + rect.width + this.tolerance ||
+            mouseY >= rect.y - this.tolerance ||
+            mouseY <= rect.y + rect.height + this.tolerance
+          ) {
+            rect.pointTo = key;
+          } else {
+            rect.pointTo = null;
+          }
+        });
       }
     });
   }
