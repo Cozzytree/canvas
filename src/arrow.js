@@ -9,10 +9,11 @@ export class Arrows extends Shapes {
       this.tox = tox;
       this.toy = toy;
       this.isActive = false;
-      this.isDragging = false;
       this.type = "arrow";
       this.endTo = null;
       this.startTo = null;
+      this.isResizingEnd = false;
+      this.isResizingStart = false;
 
       this.mouseMoveListener = this.mouseMd.bind(this);
       this.mouseUpListener = this.mousep.bind(this);
@@ -122,9 +123,13 @@ export class Arrows extends Shapes {
       const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
       arrows.forEach((arrow) => {
-         if (arrow.isResizing) {
+         if (arrow.isResizingEnd) {
             arrow.tox = mouseX;
             arrow.toy = mouseY;
+         }
+         if (arrow.isResizingStart) {
+            arrow.x = mouseX;
+            arrow.y = mouseY;
          }
 
          if (arrow.isDragging) {
@@ -151,8 +156,8 @@ export class Arrows extends Shapes {
          if (arrow.isDragging) {
             arrow.isDragging = false;
          }
-         if (arrow.isResizing) {
-            arrow.isResizing = false;
+         if (arrow.isResizingEnd) {
+            arrow.isResizingEnd = false;
             if (arrow.endTo) {
                const theRect = rectMap.get(this.endTo);
                if (!theRect.pointTo) return;
@@ -175,6 +180,34 @@ export class Arrows extends Shapes {
                ) {
                   rect.pointTo = key;
                   arrow.endTo = rectKey;
+               }
+            });
+         }
+
+         if (arrow.isResizingStart) {
+            arrow.isResizingStart = false;
+            if (arrow.startTo) {
+               const theRect = rectMap.get(this.startTo);
+               if (!theRect.startTo) return;
+               if (
+                  arrow.tox < theRect.x ||
+                  arrow.tox > theRect.x + theRect.width ||
+                  arrow.toy < theRect.y ||
+                  arrow.toy > theRect.y + theRect.width
+               ) {
+                  arrow.startTo = null;
+                  theRect.pointTo = null;
+               }
+            }
+            rectMap.forEach((rect, rectKey) => {
+               if (
+                  arrow.x >= rect.x - this.tolerance &&
+                  arrow.x <= rect.x + rect.width + this.tolerance &&
+                  arrow.y >= rect.y - this.tolerance &&
+                  arrow.y <= rect.y + rect.height + this.tolerance
+               ) {
+                  rect.pointTo = key;
+                  arrow.startTo = rectKey;
                }
             });
          }

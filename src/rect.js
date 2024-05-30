@@ -35,8 +35,13 @@ export class Rectangle extends Shapes {
             rect.y = mouseY - rect.offsetY;
             if (rect.pointTo) {
                let arc = arrows.get(rect.pointTo);
-               arc.tox = rect.x;
-               arc.toy = rect.y + rect.height * 0.5;
+               if (rectMap.get(arc.startTo) === rect) {
+                  arc.x = rect.x;
+                  arc.y = rect.y + rect.height * 0.5;
+               } else if (rectMap.get(arc.endTo) == rect) {
+                  arc.tox = rect.x;
+                  arc.toy = rect.y + rect.height * 0.5;
+               }
             }
             rect.draw();
          }

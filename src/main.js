@@ -672,9 +672,15 @@ class Shapes {
             )
          ) {
             arrow.isActive = true;
-            arrow.isResizing = true;
+            arrow.isResizingEnd = true;
             isResizing = true;
             return;
+         } else if (
+            withinBounds(arrow.x, arrow.y, arrow.x, arrow.toy, this.tolerance)
+         ) {
+            arrow.isActive = true;
+            arrow.isResizingStart = true;
+            isResizing = true;
          }
       });
 
