@@ -1,5 +1,5 @@
 import { Shapes, arrows, circleMap } from "./main";
-import { config } from "./config";
+import { config, scrollBar } from "./config";
 import { context } from "./selectors";
 
 export class Circle extends Shapes {
@@ -29,7 +29,10 @@ export class Circle extends Shapes {
                canvas.getBoundingClientRect().left -
                arc.offsetX;
             arc.y =
-               event.clientY - canvas.getBoundingClientRect().top - arc.offsetY;
+               event.clientY -
+               canvas.getBoundingClientRect().top -
+               arc.offsetY +
+               scrollBar.scrollPosition;
             if (arc.pointTo.length > 0) {
                let arrow = arc.pointTo.map((a) => {
                   return arrows.get(a);

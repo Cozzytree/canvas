@@ -1,8 +1,14 @@
 "use strict";
 
 import { changeStyle } from "./events.js";
-import { config } from "./config.js";
-import { canvas, pencil, context } from "./selectors.js";
+import { config, scrollBar } from "./config.js";
+import {
+   canvas,
+   pencil,
+   context,
+   scrollContainer,
+   scrollThumb,
+} from "./selectors.js";
 
 const circleMap = new Map();
 const rectMap = new Map();
@@ -11,12 +17,22 @@ const textMap = new Map();
 const arrows = new Map();
 
 canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// canvas.height = window.innerHeight;
 
-class Shapes {
+const visibleHeight = scrollContainer.clientHeight;
+const contentHeight = 1500; // Simulate a taller content
+canvas.height = contentHeight;
+
+const scrollThumbHeight = Math.max(
+   (visibleHeight / contentHeight) * visibleHeight,
+   20
+);
+scrollThumb.style.height = `${scrollThumbHeight}px`;
+
+export class Shapes {
    constructor() {
-      this.tolerance = 6.5;
-      this.lineWidth = 2;
+      this.tolerance = 5;
+      this.lineWidth = 1;
       this.isDragging = false;
       this.isActive = false;
       this.isResizing = false;
@@ -34,7 +50,10 @@ class Shapes {
 
       canvas.addEventListener("click", (e) => {
          const clickX = e.clientX - canvas.getBoundingClientRect().left;
-         const clickY = e.clientY - canvas.getBoundingClientRect().top;
+         const clickY =
+            e.clientY -
+            canvas.getBoundingClientRect().top +
+            scrollBar.scrollPosition;
          if (config.mode === "pencil") return;
 
          // Reset all shapes to inactive
@@ -199,6 +218,26 @@ class Shapes {
 
             arrows.forEach((arrow, key) => {
                if (arrow.isActive) {
+                  if (arrow.endTo) {
+                     const rect = rectMap.get(arrow.endTo);
+                     const arc = arrows.get(arrow.endTo);
+                     if (arc) {
+                        arc.pointTo = arc.pointTo.filter((a) => a !== key);
+                     }
+                     if (rect) {
+                        rect.pointTo = rect.pointTo.filter((a) => a !== key);
+                     }
+                     console.log(rectMap);
+                  } else if (arrow.startTo) {
+                     const rect = rectMap.get(arrow.startTo);
+                     const arc = arrows.get(arrow.startTo);
+                     if (arc) {
+                        arc.pointTo = arc.pointTo.filter((a) => a !== key);
+                     }
+                     if (rect) {
+                        rect.pointTo = rect.pointTo.filter((a) => a !== key);
+                     }
+                  }
                   arrows.delete(key);
                }
             });
@@ -229,6 +268,10 @@ class Shapes {
    draw() {
       context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
       const radius = 10; // Adjust the radius for the desired roundness
+      context.lineWidth = this.lineWidth;
+
+      context.save();
+      context.translate(0, -scrollBar.scrollPosition);
 
       rectMap.forEach((rect) => {
          const x = rect.x;
@@ -271,9 +314,8 @@ class Shapes {
             context.stroke();
 
             context.restore();
-         } else {
-            context.strokeStyle = "white";
          }
+         context.strokeStyle = "white";
 
          context.beginPath();
          context.moveTo(x + radius, y);
@@ -560,6 +602,7 @@ class Shapes {
          context.stroke();
          context.restore();
       });
+      context.restore();
    }
 
    fourDots(tL, tR, bR, bL) {
@@ -576,7 +619,10 @@ class Shapes {
       if (config.mode === "pencil") return;
       let isResizing = false;
       const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+      const mouseY =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
 
       // rect resize
       rectMap.forEach((rect) => {
@@ -801,6 +847,9 @@ class Shapes {
       };
 
       const arrow = (arrow) => {
+         if (arrow.endTo || arrow.startTo) {
+            return (arr = null);
+         }
          if (arrow.x < arrow.tox) {
             if (arrow.y > arrow.toy) {
                if (withinBounds(arrow.x, arrow.toy, arrow.tox, arrow.y)) {
@@ -958,5 +1007,32 @@ class Shapes {
    }
 }
 
-new Shapes();
-export { Shapes, circleMap, rectMap, pencilMap, textMap, arrows };
+const shape = new Shapes();
+
+function onScroll(y) {
+   const maxScrollTop = visibleHeight - scrollThumbHeight;
+   const thumbTop = Math.min(Math.max(y, 0), maxScrollTop);
+   scrollThumb.style.top = `${thumbTop}px`;
+   scrollBar.scrollPosition =
+      (thumbTop / maxScrollTop) * (contentHeight - visibleHeight);
+   //    shape.draw();
+}
+scrollThumb.addEventListener("mousedown", (e) => {
+   scrollBar.isDragging = true;
+   scrollBar.startY = e.clientY - scrollThumb.offsetTop;
+   document.body.style.userSelect = "none";
+});
+
+document.addEventListener("mousemove", (e) => {
+   if (!scrollBar.isDragging) return;
+   const y = e.clientY - scrollBar.startY;
+   onScroll(y);
+   shape.draw();
+});
+
+document.addEventListener("mouseup", () => {
+   scrollBar.isDragging = false;
+   document.body.style.userSelect = "auto";
+});
+
+export { circleMap, rectMap, pencilMap, textMap, arrows };

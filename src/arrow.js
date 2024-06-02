@@ -1,3 +1,4 @@
+import { scrollBar } from "./config";
 import { Shapes, arrows, circleMap, rectMap } from "./main";
 import { canvas, context } from "./selectors";
 
@@ -24,7 +25,7 @@ export class Arrows extends Shapes {
 
    mouseD(e) {
       const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+      const mouseY = e.clientY - canvas.getBoundingClientRect().top + scrollBar.scrollPosition;
 
       const withinBounds = (x1, y1, x2, y2, tolerance = 0) => {
          return (
@@ -120,7 +121,7 @@ export class Arrows extends Shapes {
 
    mouseMd(e) {
       const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+      const mouseY = e.clientY - canvas.getBoundingClientRect().top + scrollBar.scrollPosition;
 
       arrows.forEach((arrow) => {
          if (arrow.isResizingEnd) {

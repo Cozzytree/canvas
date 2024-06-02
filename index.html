@@ -1,79 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="stylesheet" href="style.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app" class="w-screen overflow-x-hidden flex relative">
-      <main
-        class="w-[42px] h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-md flex flex-col absolute top-10 left-2 p-[2px]"
-      >
-        <button
-          id="freeMode"
-          class="cursor-pointer flex justify-center items-center"
-        >
-          <img
-            class="hover:bg-zinc-600 transition-all duration-150 w-[40px] h-[40px] px-2 rounded-sm"
-            src="/cursor.svg"
-            loading="lazy"
-            width="50px"
-            height="50px"
-            alt=""
-          />
-        </button>
+   <head>
+      <meta charset="UTF-8" />
+      <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+      <link rel="stylesheet" href="style.css" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Vite App</title>
+   </head>
+   <body>
+      <div id="app" class="w-screen flex-col flex relative">
+         <div
+            class="fixed top-0 w-full grid grid-cols-[1fr_0.5fr_1fr] px-3 z-[999] border-b border-zinc-400/30 py-[10px] bg-zinc-950"
+         >
+            <div class="flex items-center gap-2">
+               <h2 class="cursor-pointer italic">
+                  <a href="http://localhost:3000"> Docile</a>
+               </h2>
+               <p>Title</p>
+            </div>
 
-        <button
-          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
-          id="newRect"
-        >
-          <div class="square"></div>
-        </button>
+            <!-- witch between doc and canvas -->
+            <div
+               class="grid grid-cols-3 divide-x-2 border border-zinc-400/30 rounded-sm text-sm"
+            >
+               <button
+                  id="switch-document"
+                  class="hover:bg-zinc-400/40 transition-all duration-200"
+               >
+                  Document
+               </button>
+               <button
+                  id="switch-both"
+                  class="hover:bg-zinc-400/40 transition-all duration-200"
+               >
+                  Both
+               </button>
+               <button
+                  id="switch-canvas"
+                  class="hover:bg-zinc-400/40 transition-all duration-200"
+               >
+                  Canvas
+               </button>
+            </div>
+         </div>
 
-        <button
-          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
-          id="newCircle"
-        >
-          <div
-            class="circle hover:bg-zinc-600 transition-all duration-150"
-          ></div>
-        </button>
+         <!-- button zoom -->
+         <div
+            class="w-[150px] fixed top-10 right-6 grid grid-cols-3 gap-2 items-center text-sm z-[999]"
+         >
+            <button
+               class="cursor-pointer hover:bg-zinc-400/30 transition-all duration-200 rounded-sm"
+            >
+               -
+            </button>
+            <span class="text-center">100</span>
+            <button
+               class="cursor-pointer hover:bg-zinc-400/30 transition-all duration-200 rounded-sm"
+            >
+               +
+            </button>
+         </div>
 
-        <button
-          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
-          id="lineArrow"
-        >
-          &seArr;
-        </button>
+         <main
+            id="canvas-container"
+            class="grid grid-cols-[0.5fr_1fr] divide-x"
+         >
+            <div id="document" class="flex flex-col justify-start px-6 pt-16">
+               <h1 class="text-2xl text-start">Canvas</h1>
+               <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit
+                  eum quod architecto alias atque doloribus perspiciatis
+                  consequuntur, laudantium animi! Nulla repellendus cum ad quis
+                  laudantium vel laborum explicabo facere consequuntur.
+               </p>
+            </div>
 
-        <button
-          class="cursor-pointer px-2 h-[40px] py-[1\0px] flex justify-center items-center hover:bg-zinc-700/50 transition-all duration-150"
-          id="Text"
-        >
-          <h2 class="font-extrabold">T</h2>
-        </button>
+            <div
+               id="canvas-div"
+               class="relative overflow-hidden h-[100dvh] w-full"
+            >
+               <div
+                  class="w-[42px] h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-sm flex flex-col absolute top-16 left-2 p-[2px]"
+               >
+                  <button
+                     id="freeMode"
+                     class="cursor-pointer flex justify-center items-center rounded-[10%]"
+                  >
+                     <img
+                        class="hover:bg-zinc-600/50 transition-all duration-200 w-[40px] h-[40px] px-2 rounded-sm"
+                        src="/cursor.svg"
+                        loading="lazy"
+                        width="50px"
+                        height="50px"
+                        alt=""
+                     />
+                  </button>
 
-        <button
-          class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
-          id="pencil"
-        >
-          <img
-            src="/pencil.svg"
-            loading="lazy"
-            alt=""
-            width="50px"
-            height="50px"
-          />
-        </button>
-      </main>
-      <canvas
-        id="canvas"
-        class="min-h-screen z-[900] bg-transparent absolute top-0 left-0"
-      ></canvas>
-    </div>
-    <script type="module" src="src/main.js"></script>
-  </body>
+                  <button
+                     class="cursor-pointer flex justify-center items-center rounded-[10%]"
+                     id="newRect"
+                  >
+                     <div
+                        class="hover:bg-zinc-600/50 transition-all duration-200 w-[40px] h-[40px] px-2 rounded-sm flex justify-center items-center"
+                     >
+                        <div class="square"></div>
+                     </div>
+                  </button>
+
+                  <button
+                     class="cursor-pointer flex justify-center items-center rounded-[10%]"
+                     id="newCircle"
+                  >
+                     <div
+                        class="hover:bg-zinc-600/50 transition-all duration-200 w-[40px] h-[40px] px-2 rounded-sm flex justify-center items-center"
+                     >
+                        <div class="circle"></div>
+                     </div>
+                  </button>
+
+                  <button
+                     class="cursor-pointer flex justify-center items-center rounded-[10%]"
+                     id="lineArrow"
+                  >
+                     <div
+                        class="hover:bg-zinc-600/50 transition-all duration-200 w-[40px] h-[40px] px-2 rounded-sm flex justify-center items-center"
+                     >
+                        &seArr;
+                     </div>
+                  </button>
+
+                  <button
+                     class="cursor-pointer px-2 w-[40px] h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-700/50 transition-all duration-150"
+                     id="Text"
+                  >
+                     <h2 class="font-extrabold">T</h2>
+                  </button>
+
+                  <button
+                     class="cursor-pointer rounded-sm px-2 h-[40px] py-[10px] flex justify-center items-center hover:bg-zinc-600 transition-all duration-150"
+                     id="pencil"
+                  >
+                     <img
+                        src="/pencil.svg"
+                        loading="lazy"
+                        alt=""
+                        width="50px"
+                        height="50px"
+                     />
+                  </button>
+               </div>
+               <canvas
+                  id="canvas"
+                  class="min-h-screen z-[900] bg-transparent"
+               ></canvas>
+               <div
+                  class="absolute right-0 top-0 w-[10px] h-full"
+                  id="scroll-bar"
+               >
+                  <div
+                     class="absolute right-0 top-0 w-full h-[50px] border bg-transparent border-zinc-500 rounded-sm cursor-pointer z-[999]"
+                     id="scroll-thumb"
+                  ></div>
+               </div>
+            </div>
+         </main>
+      </div>
+      <script type="module" src="src/main.js"></script>
+   </body>
 </html>

@@ -1,5 +1,5 @@
 import { Shapes, arrows, rectMap } from "./main";
-import { config } from "./config";
+import { config, scrollBar } from "./config";
 import { canvas, context } from "./selectors";
 
 export class Rectangle extends Shapes {
@@ -32,7 +32,7 @@ export class Rectangle extends Shapes {
          if (rect.isDragging) {
             rect.isActive = true;
             rect.x = mouseX - rect.offsetX;
-            rect.y = mouseY - rect.offsetY;
+            rect.y = mouseY - rect.offsetY + scrollBar.scrollPosition;
             if (rect.pointTo.length > 0) {
                // let arc = arrows.get(rect.pointTo);
                let arc = rect.pointTo.map((a) => {
@@ -123,7 +123,10 @@ export class Rectangle extends Shapes {
             rect.x =
                e.clientX - canvas.getBoundingClientRect().left - rect.offsetX;
             rect.y =
-               e.clientY - canvas.getBoundingClientRect().top - rect.offsetY;
+               e.clientY -
+               canvas.getBoundingClientRect().top -
+               rect.offsetY +
+               scrollBar.scrollPosition;
             rect.draw();
             rect.isDragging = false;
          }
@@ -154,82 +157,12 @@ export class Rectangle extends Shapes {
       context.stroke();
    }
 
-   // mouseDownforResizing(e) {
-   //   const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-   //   const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-
-   //   rectMap.forEach((rect) => {
-   //     // Check for horizontal resizing
-   //     const leftEdge =
-   //       mouseX >= rect.x - this.tolerance && mouseX <= rect.x + this.tolerance;
-   //     const rightEdge =
-   //       mouseX >= rect.x + rect.width - this.tolerance &&
-   //       mouseX <= rect.x + rect.width + this.tolerance;
-   //     const verticalBounds =
-   //       mouseY > rect.y + this.tolerance &&
-   //       mouseY < rect.y + rect.height - this.tolerance;
-
-   //     if ((leftEdge || rightEdge) && verticalBounds) {
-   //       console.log("true");
-   //       rect.isActive = true;
-   //       rect.horizontalResizing = true;
-   //     }
-
-   //     // vertical resizing //
-   //     const withinTopEdge =
-   //       mouseY >= rect.y - this.tolerance && mouseY <= rect.y + this.tolerance;
-   //     const withinBottomEdge =
-   //       mouseY >= rect.y + rect.height - this.tolerance &&
-   //       mouseY <= rect.y + rect.height + this.tolerance;
-   //     const withinHorizontalBounds =
-   //       mouseX > rect.x + this.tolerance &&
-   //       mouseX < rect.x + rect.width - this.tolerance;
-
-   //     if ((withinTopEdge || withinBottomEdge) && withinHorizontalBounds) {
-   //       rect.isActive = true;
-   //       rect.verticalResizing = true;
-   //     }
-
-   //     // Check for corners resize
-   //     const withinTopLeftCorner =
-   //       mouseX >= rect.x - this.tolerance &&
-   //       mouseX <= rect.x + this.tolerance &&
-   //       mouseY >= rect.y - this.tolerance &&
-   //       mouseY <= rect.y + this.tolerance;
-
-   //     const withinTopRightCorner =
-   //       mouseX >= rect.x + rect.width - this.tolerance &&
-   //       mouseX <= rect.x + rect.width + this.tolerance &&
-   //       mouseY >= rect.y - this.tolerance &&
-   //       mouseY <= rect.y + this.tolerance;
-
-   //     const withinBottomLeftCorner =
-   //       mouseX >= rect.x - this.tolerance &&
-   //       mouseX <= rect.x + this.tolerance &&
-   //       mouseY >= rect.y + rect.height - this.tolerance &&
-   //       mouseY <= rect.y + rect.height + this.tolerance;
-
-   //     const withinBottomRightCorner =
-   //       mouseX >= rect.x + rect.width - this.tolerance &&
-   //       mouseX <= rect.x + rect.width + this.tolerance &&
-   //       mouseY >= rect.y + rect.height - this.tolerance &&
-   //       mouseY <= rect.y + rect.height + this.tolerance;
-
-   //     if (
-   //       withinTopLeftCorner ||
-   //       withinTopRightCorner ||
-   //       withinBottomLeftCorner ||
-   //       withinBottomRightCorner
-   //     ) {
-   //       rect.isActive = true;
-   //       rect.isResizing = true;
-   //     }
-   //   });
-   // }
-
    mouseMoveforResizing(e) {
       const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+      const mouseY =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
 
       rectMap.forEach((rect) => {
          if (rect.horizontalResizing) {
@@ -254,12 +187,8 @@ export class Rectangle extends Shapes {
                rect.height = Math.abs(mouseY - rect.y);
          } else if (rect.isResizing) {
             rect.isActive = true;
-            rect.width = Math.abs(
-               e.clientX - canvas.getBoundingClientRect().left - rect.x
-            );
-            rect.height = Math.abs(
-               e.clientY - canvas.getBoundingClientRect().top - rect.y
-            );
+            rect.width = Math.abs(mouseX - rect.x);
+            rect.height = Math.abs(mouseY - rect.y);
          }
          rect.draw();
       });

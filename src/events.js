@@ -1,6 +1,17 @@
 import { rectMap, circleMap, textMap, pencilMap, arrows } from "./main.js";
-import { config } from "./config.js";
-import { canvas, pencil, context, lineArrow } from "./selectors";
+import { config, scrollBar } from "./config.js";
+import {
+   canvas,
+   pencil,
+   context,
+   lineArrow,
+   switchBoth,
+   switchDoc,
+   switchCanvas,
+   scrollContainer,
+   docuemntDiv,
+   canvasDiv,
+} from "./selectors";
 import { Rectangle } from "./rect.js";
 import { Circle } from "./sphere.js";
 import { Text } from "./text.js";
@@ -32,7 +43,10 @@ newRect.addEventListener("click", (e) => {
    canvas.addEventListener("click", (e) => {
       shape.remove();
       const x = e.clientX - canvas.getBoundingClientRect().left;
-      const y = e.clientY - canvas.getBoundingClientRect().top;
+      const y =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
       if (config.mode === "rect") {
          const temp = new Rectangle(x, y);
          rectMap.set(Math.random() * 10, temp);
@@ -65,7 +79,10 @@ newCircle.addEventListener("click", (e) => {
    canvas.addEventListener("click", (e) => {
       shape.remove();
       const x = e.clientX - canvas.getBoundingClientRect().left;
-      const y = e.clientY - canvas.getBoundingClientRect().top;
+      const y =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
       if (config.mode === "circle") {
          const temp = new Circle(x + 50, y + 50);
          circleMap.set(Math.random() * 10, temp);
@@ -105,7 +122,10 @@ lineArrow.addEventListener("click", () => {
       line.remove();
       if (config.mode !== "arrowLine") return;
       const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+      const mouseY =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
 
       const newArr = new Arrows(mouseX, mouseY, mouseX + 100, mouseY);
 
@@ -119,10 +139,9 @@ lineArrow.addEventListener("click", () => {
 
 canvas.addEventListener("dblclick", function (event) {
    // Handle double click event
-   if (event.target.tagName === "INPUT") return;
+   if (event.target.tagName === "TEXTAREA") return;
 
-   const html = `<input type="text" class="w-[10ch] absolute px-[3px] text-[14px] outline-none bg-transparent focus:border-[1px] border-zinc-400/50 z-[999] shadow-sm" id="input"/>
-  `;
+   const html = `<textarea class="w-[10ch] absolute px-[3px] text-[14px] outline-none bg-transparent focus:border-[1px] border-zinc-400/50 z-[999] h-fit shadow-sm" id="input"></textarea>`;
    document.body.insertAdjacentHTML("afterbegin", html);
    const input = document.getElementById("input");
    input.style.left = event.clientX + "px";
@@ -132,8 +151,11 @@ canvas.addEventListener("dblclick", function (event) {
 
    input.addEventListener("change", (e) => {
       const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-      const newText = new Text(mouseX, mouseY, 20, e.target.value);
+      const mouseY =
+         event.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
+      const newText = new Text(mouseX, mouseY, 15, e.target.value);
       textMap.set(Math.random() * 100, newText);
       newText.draw();
       input.remove();
@@ -203,27 +225,92 @@ function stopDrawing() {
 }
 
 export function changeStyle() {
-   if (config.mode === "pencil") {
-      pencil.style.background = "#8080806b";
-      newRect.style.background = "transparent";
-      newCircle.style.background = "transparent";
-      freeMode.style.background = "transparent";
-   } else if (config.mode === "rect") {
-      newRect.style.background = "#8080806b";
-      pencil.style.background = "transparent";
-      newCircle.style.background = "transparent";
-      freeMode.style.background = "transparent";
-   } else if (config.mode === "free") {
-      freeMode.style.background = "#8080806b";
-      newRect.style.background = "transparent";
-      pencil.style.background = "transparent";
-      newCircle.style.background = "transparent";
-   } else if (config.mode === "circle") {
-      freeMode.style.background = "transparent";
-      newRect.style.background = "transparent";
-      pencil.style.background = "transparent";
-      newCircle.style.background = "#8080806b";
+   switch (config.mode) {
+      case "pencil":
+         pencil.style.background = "#8080806b";
+         newRect.style.background = "transparent";
+         newCircle.style.background = "transparent";
+         freeMode.style.background = "transparent";
+         lineArrow.style.background = "transparent";
+         break;
+      case "rect":
+         newRect.style.background = "#8080806b";
+         pencil.style.background = "transparent";
+         newCircle.style.background = "transparent";
+         freeMode.style.background = "transparent";
+         lineArrow.style.background = "transparent";
+         break;
+      case "free":
+         freeMode.style.background = "#8080806b";
+         newRect.style.background = "transparent";
+         pencil.style.background = "transparent";
+         newCircle.style.background = "transparent";
+         lineArrow.style.background = "transparent";
+         break;
+      case "circle":
+         newCircle.style.background = "#8080806b";
+         freeMode.style.background = "transparent";
+         newRect.style.background = "transparent";
+         pencil.style.background = "transparent";
+         lineArrow.style.background = "transparent";
+         break;
+      case "arrowLine":
+         lineArrow.style.background = "#8080806b";
+         freeMode.style.background = "transparent";
+         newRect.style.background = "transparent";
+         pencil.style.background = "transparent";
+         newCircle.style.background = "transparent";
+         break;
+      default:
+         break;
    }
 }
 
+export function changeDoc() {
+   switch (config.docMode) {
+      case "both":
+         scrollContainer.classList.add("grid");
+         docuemntDiv.classList.remove("hidden");
+         canvasDiv.classList.remove("hidden");
+         switchBoth.classList.add("bg-zinc-400/30");
+         switchCanvas.classList.remove("bg-zinc-400/30");
+         switchDoc.classList.remove("bg-zinc-400/30");
+         break;
+      case "canvas":
+         scrollContainer.classList.remove("grid");
+         docuemntDiv.classList.add("hidden");
+         canvasDiv.classList.remove("hidden");
+         switchCanvas.classList.add("bg-zinc-400/30");
+         switchBoth.classList.remove("bg-zinc-400/30");
+         switchDoc.classList.remove("bg-zinc-400/30");
+         break;
+      case "doc":
+         scrollContainer.classList.remove("grid");
+         canvasDiv.classList.add("hidden");
+         docuemntDiv.classList.remove("hidden");
+         switchDoc.classList.add("bg-zinc-400/30");
+         switchCanvas.classList.remove("bg-zinc-400/30");
+         switchBoth.classList.remove("bg-zinc-400/30");
+      default:
+         break;
+   }
+}
+
+switchBoth.addEventListener("click", () => {
+   config.docMode = "both";
+   changeDoc();
+});
+
+switchCanvas.addEventListener("click", () => {
+   config.docMode = "canvas";
+   changeDoc();
+});
+
+switchDoc.addEventListener("click", () => {
+   config.docMode = "doc";
+   console.log(config.docMode);
+   changeDoc();
+});
+
+changeDoc();
 changeStyle(config.mode);
