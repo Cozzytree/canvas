@@ -1,4 +1,5 @@
-import { Shapes, arrows, circleMap } from "./main";
+import Shapes from "./shape";
+import { arrows, circleMap } from "./main";
 import { config, scrollBar } from "./config";
 import { context } from "./selectors";
 

@@ -1,3 +1,4 @@
+import Rectangle from "./rect.js";
 import { rectMap, circleMap, textMap, pencilMap, arrows } from "./main.js";
 import { config, scrollBar } from "./config.js";
 import {
@@ -12,7 +13,6 @@ import {
    docuemntDiv,
    canvasDiv,
 } from "./selectors";
-import { Rectangle } from "./rect.js";
 import { Circle } from "./sphere.js";
 import { Text } from "./text.js";
 import { Arrows } from "./arrow.js";
@@ -53,6 +53,7 @@ newRect.addEventListener("click", (e) => {
          temp.drawRect(temp); // Draw the new rectangle
          config.mode = "free";
          changeStyle();
+         localStorage.setItem("rectMap", rectMap);
       }
    });
 });
@@ -155,8 +156,10 @@ canvas.addEventListener("dblclick", function (event) {
          event.clientY -
          canvas.getBoundingClientRect().top +
          scrollBar.scrollPosition;
-      const newText = new Text(mouseX, mouseY, 15, e.target.value);
+      const content = e.target.value.split("\n");
+      const newText = new Text(mouseX, mouseY, 15, content);
       textMap.set(Math.random() * 100, newText);
+      console.log(newText);
       newText.draw();
       input.remove();
    });

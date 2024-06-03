@@ -1,10 +1,31 @@
-import { Shapes, arrows, rectMap } from "./main";
+import Shapes from "./shape.js";
+import { arrows, rectMap } from "./main";
 import { config, scrollBar } from "./config";
 import { canvas, context } from "./selectors";
 
-export class Rectangle extends Shapes {
-   constructor(x, y, width = 100, height = 100) {
-      super();
+export default class Rectangle extends Shapes {
+   constructor(
+      x,
+      y,
+      width = 100,
+      height = 100,
+      tolerance,
+      lineWidth,
+      isDragging,
+      isActive,
+      isResizing,
+      horizontelResizing,
+      verticalResizing
+   ) {
+      super(
+         tolerance,
+         lineWidth,
+         isDragging,
+         isActive,
+         isResizing,
+         horizontelResizing,
+         verticalResizing
+      );
       this.x = x;
       this.y = y;
       this.width = width;

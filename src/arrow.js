@@ -1,5 +1,6 @@
+import Shapes from "./shape";
 import { scrollBar } from "./config";
-import { Shapes, arrows, circleMap, rectMap } from "./main";
+import { arrows, circleMap, rectMap, textMap } from "./main";
 import { canvas, context } from "./selectors";
 
 export class Arrows extends Shapes {
@@ -25,7 +26,10 @@ export class Arrows extends Shapes {
 
    mouseD(e) {
       const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top + scrollBar.scrollPosition;
+      const mouseY =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
 
       const withinBounds = (x1, y1, x2, y2, tolerance = 0) => {
          return (
@@ -121,7 +125,10 @@ export class Arrows extends Shapes {
 
    mouseMd(e) {
       const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top + scrollBar.scrollPosition;
+      const mouseY =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
 
       arrows.forEach((arrow) => {
          if (arrow.isResizingEnd) {
@@ -149,9 +156,9 @@ export class Arrows extends Shapes {
       this.draw();
    }
 
-   mousep(e) {
-      const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+   mousep() {
+      //   const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+      //   const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
       arrows.forEach((arrow, key) => {
          if (arrow.isDragging) {
@@ -165,6 +172,19 @@ export class Arrows extends Shapes {
             if (arrow.endTo) {
                const theArc = circleMap.get(arrow.endTo);
                const theRect = rectMap.get(arrow.endTo);
+               const text = textMap.get(arrow.endTo);
+
+               if (text && text.pointTo.length > 0) {
+                  if (
+                     arrow.tox < text.x ||
+                     arrow.tox > text.x + text.width ||
+                     arrow.toy < text.y ||
+                     arrow.toy > text.y + text.height
+                  ) {
+                     arrow.endTo = null;
+                     text.pointTo.filter((t) => t !== key);
+                  }
+               }
 
                // end to rect
                if (theRect && theRect.pointTo.length > 0) {
@@ -182,6 +202,7 @@ export class Arrows extends Shapes {
                }
 
                // end to arc
+
                if (theArc && theArc.pointTo.length > 0) {
                   const parameter = Math.sqrt(
                      (arrow.tox - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
@@ -197,6 +218,7 @@ export class Arrows extends Shapes {
                }
             }
 
+            // arrow end point to rect
             rectMap.forEach((rect, rectKey) => {
                if (
                   arrow.tox >= rect.x - this.tolerance &&
@@ -204,18 +226,52 @@ export class Arrows extends Shapes {
                   arrow.toy >= rect.y - this.tolerance &&
                   arrow.toy <= rect.y + rect.height + this.tolerance
                ) {
-                  // rect.pointTo = key;
-                  rect.pointTo.push(key);
-                  arrow.endTo = rectKey;
+                  if (rect.pointTo.length > 0) {
+                     rect.pointTo.forEach((r) => {
+                        if (r === key) return;
+                        else {
+                           rect.pointTo.push(key);
+                           arrow.endTo = rectKey;
+                        }
+                     });
+                  } else {
+                     rect.pointTo.push(key);
+                     arrow.endTo = rectKey;
+                  }
                }
             });
+
+            // arrow end point to sphere
             circleMap.forEach((arc, arckey) => {
                const parameter = Math.sqrt(
                   (arrow.tox - arc.x) ** 2 + (arrow.toy - arc.y) ** 2
                );
                if (parameter < arc.xRadius && parameter < arc.yRadius) {
-                  arc.pointTo.push(key);
-                  arrow.endTo = arckey;
+                  if (arc.pointTo.length > 0) {
+                     arc.pointTo.forEach((a) => {
+                        if (a === key) return;
+                        else {
+                           arc.pointTo.push(key);
+                           arrow.endTo = arckey;
+                        }
+                     });
+                  } else {
+                     arc.pointTo.push(key);
+                     arrow.endTo = arckey;
+                  }
+               }
+            });
+
+            //point to text
+            textMap.forEach((t, textKey) => {
+               if (
+                  arrow.tox >= t.x &&
+                  arrow.tox <= t.x + t.width &&
+                  arrow.toy >= t.y &&
+                  arrow.toy <= t.y + t.height
+               ) {
+                  arrow.endTo = textKey;
+                  t.pointTo.push(key);
                }
             });
          }
@@ -279,7 +335,7 @@ export class Arrows extends Shapes {
       });
    }
 
-   drawArrow(fromx, fromy, tox, toy, arrowWidth = 2, color = "black") {
+   drawArrow(fromx, fromy, tox, toy, arrowWidth = 1.2, color = "black") {
       let headlen = 10;
       let angle = Math.atan2(toy - fromy, tox - fromx);
 

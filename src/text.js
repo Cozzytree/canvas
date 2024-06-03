@@ -1,4 +1,5 @@
-import { Shapes, textMap } from "./main";
+import Shapes from "./shape";
+import { arrows, textMap } from "./main";
 import { config, scrollBar } from "./config";
 
 export class Text extends Shapes {
@@ -7,7 +8,9 @@ export class Text extends Shapes {
       this.x = x;
       this.y = y;
       this.size = size;
+      //   this.content = content;
       this.content = content;
+      this.pointTo = [];
 
       canvas.addEventListener("mousedown", this.mouseDown.bind(this));
       canvas.addEventListener("mousemove", this.mouseMove.bind(this));
@@ -45,6 +48,29 @@ export class Text extends Shapes {
          if (text.isDragging) {
             text.x = mouseX - text.offsetX;
             text.y = mouseY - text.offsetY;
+            if (text.pointTo.length > 0) {
+               let arcs = text.pointTo.map((t) => {
+                  return arrows.get(t);
+               });
+
+               let arrowStartRect = arcs.map((a) => {
+                  return textMap.get(a.startTo);
+               });
+               let arrowEndRect = arcs.map((a) => {
+                  return textMap.get(a.endTo);
+               });
+
+               arrowEndRect.forEach((ar) => {
+                  if (ar === text) {
+                     arcs.forEach((a) => {
+                        if (textMap.get(a.endTo) === text) {
+                           a.tox = text.x;
+                           a.toy = text.y;
+                        }
+                     });
+                  }
+               });
+            }
          } else if (text.isResizing) {
             text.size = Math.max(10, mouseY - text.y); // Ensure minimum size
          }
