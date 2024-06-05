@@ -10,6 +10,7 @@ const switchCanvas = document.getElementById("switch-canvas");
 const switchBoth = document.getElementById("switch-both");
 const docuemntDiv = document.getElementById("document");
 const canvasDiv = document.getElementById("canvas-div");
+const line = document.getElementById("line");
 
 let IS_PENCIL_DRAWING = false;
 let LAST_X = 0;
@@ -31,4 +32,5 @@ export {
    switchCanvas,
    docuemntDiv,
    canvasDiv,
+   line,
 };

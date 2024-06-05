@@ -39,71 +39,79 @@ export class Circle extends Shapes {
                   return arrows.get(a);
                });
 
-               let arrowStartRect = arrow.map((a) => {
-                  return circleMap.get(a.startTo);
-               });
-
-               let arrowEndRect = arrow.map((a) => {
-                  return circleMap.get(a.endTo);
-               });
-
-               arrowStartRect.forEach((ar) => {
-                  if (ar == arc) {
-                     arrow.forEach((a) => {
-                        if (circleMap.get(a.startTo) === arc) {
-                           if (
-                              a.tox >= arc.x - arc.xRadius &&
-                              a.tox <= arc.x + arc.xRadius
-                           ) {
-                              a.x = arc.x;
-                              if (a.toy < a.y) {
-                                 a.y = arc.y - arc.yRadius;
-                              } else {
-                                 a.y = arc.y + arc.yRadius;
-                              }
-                           } else if (a.x < a.tox) {
-                              a.x = arc.x + arc.xRadius;
-                              a.y = arc.y;
-                           } else {
-                              a.x = arc.x - arc.xRadius;
-                              a.y = arc.y;
-                           }
-                        }
-                     });
+               let arrowStartSphere = [];
+               let arrowEndSphere = [];
+               arrow.forEach((a) => {
+                  let start = circleMap.get(a.startTo);
+                  let end = circleMap.get(a.endTo);
+                  if (start) {
+                     arrowStartSphere.push(start);
+                  }
+                  if (end) {
+                     arrowEndSphere.push(end);
                   }
                });
 
-               arrowEndRect.forEach((ar) => {
-                  if (ar == arc) {
-                     arrow.forEach((a) => {
-                        if (circleMap.get(a.endTo) === arc) {
-                           if (
-                              a.x >= arc.x - arc.xRadius &&
-                              a.x <= arc.x + arc.xRadius
-                           ) {
-                              // a.x is within the horizontal bounds of the circle
-                              if (a.y <= arc.y) {
-                                 // a is above the circle
-                                 a.tox = arc.x;
-                                 a.toy = arc.y - arc.yRadius; // Top of the circle
+               if (arrowStartSphere.length > 0) {
+                  arrowStartSphere.forEach((ar) => {
+                     if (ar == arc) {
+                        arrow.forEach((a) => {
+                           if (circleMap.get(a.startTo) === arc) {
+                              if (
+                                 a.tox >= arc.x - arc.xRadius &&
+                                 a.tox <= arc.x + arc.xRadius
+                              ) {
+                                 a.x = arc.x;
+                                 if (a.toy < a.y) {
+                                    a.y = arc.y - arc.yRadius;
+                                 } else {
+                                    a.y = arc.y + arc.yRadius;
+                                 }
+                              } else if (a.x < a.tox) {
+                                 a.x = arc.x + arc.xRadius;
+                                 a.y = arc.y;
                               } else {
-                                 // a is below the circle
-                                 a.tox = arc.x;
-                                 a.toy = arc.y + arc.yRadius; // Bottom of the circle
+                                 a.x = arc.x - arc.xRadius;
+                                 a.y = arc.y;
                               }
-                           } else if (a.x < arc.x - arc.xRadius) {
-                              // a.x is to the left of the circle
-                              a.tox = arc.x - arc.xRadius;
-                              a.toy = arc.y;
-                           } else {
-                              // a.x is to the right of the circle
-                              a.tox = arc.x + arc.xRadius;
-                              a.toy = arc.y;
                            }
-                        }
-                     });
-                  }
-               });
+                        });
+                     }
+                  });
+               }
+               if (arrowEndSphere.length > 0) {
+                  arrowEndSphere.forEach((ar) => {
+                     if (ar == arc) {
+                        arrow.forEach((a) => {
+                           if (circleMap.get(a.endTo) === arc) {
+                              if (
+                                 a.x >= arc.x - arc.xRadius &&
+                                 a.x <= arc.x + arc.xRadius
+                              ) {
+                                 // a.x is within the horizontal bounds of the circle
+                                 if (a.y <= arc.y) {
+                                    // a is above the circle
+                                    a.tox = arc.x;
+                                    a.toy = arc.y - arc.yRadius; // Top of the circle
+                                 } else {
+                                    // a is below the circle
+                                    a.tox = arc.x;
+                                    a.toy = arc.y + arc.yRadius; // Bottom of the circle
+                                 }
+                              } else if (a.x < arc.x - arc.xRadius) {
+                                 // a.x is to the left of the circle
+                                 a.tox = arc.x - arc.xRadius;
+                                 a.toy = arc.y;
+                              } else {
+                                 // a.x is to the right of the circle
+                                 a.tox = arc.x + arc.xRadius;
+                                 a.toy = arc.y;
+                              }
+                           }
+                        });
+                     }
+                  });
+               }
             }
             this.draw();
          }

@@ -134,10 +134,12 @@ export class Arrows extends Shapes {
          if (arrow.isResizingEnd) {
             arrow.tox = mouseX;
             arrow.toy = mouseY;
+            this.draw();
          }
          if (arrow.isResizingStart) {
             arrow.x = mouseX;
             arrow.y = mouseY;
+            this.draw();
          }
 
          if (arrow.isDragging) {
@@ -150,10 +152,9 @@ export class Arrows extends Shapes {
             arrow.y = deltaY;
             arrow.tox = deltaX + diffX;
             arrow.toy = deltaY + diffY;
+            this.draw();
          }
       });
-
-      this.draw();
    }
 
    mousep() {

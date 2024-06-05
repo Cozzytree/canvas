@@ -52,24 +52,54 @@ export class Text extends Shapes {
                let arcs = text.pointTo.map((t) => {
                   return arrows.get(t);
                });
+               let arrowStart = [];
+               let arrowEnd = [];
 
-               let arrowStartRect = arcs.map((a) => {
-                  return textMap.get(a.startTo);
-               });
-               let arrowEndRect = arcs.map((a) => {
-                  return textMap.get(a.endTo);
-               });
-
-               arrowEndRect.forEach((ar) => {
-                  if (ar === text) {
-                     arcs.forEach((a) => {
-                        if (textMap.get(a.endTo) === text) {
-                           a.tox = text.x;
-                           a.toy = text.y;
-                        }
-                     });
+               arcs.forEach((a) => {
+                  let start = textMap.get(a.startTo);
+                  let end = textMap.get(a.endTo);
+                  if (start) {
+                     arrowStart.push(start);
+                  }
+                  if (end) {
+                     arrowEnd.push(end);
                   }
                });
+
+               if (arrowStart.length > 0) {
+                  arrowStart.forEach((ar) => {
+                     if (ar === text) {
+                        arcs.forEach((a) => {
+                           if (textMap.get(a.startTo) === text) {
+                           }
+                        });
+                     }
+                  });
+               }
+               
+               if (arrowEnd.length > 0) {
+                  arrowEnd.forEach((ar) => {
+                     if (ar === text) {
+                        arcs.forEach((a) => {
+                           if (textMap.get(a.endTo) === text) {
+                              if (a.y < a.toy) {
+                                 a.tox =
+                                    text.x +
+                                    (text.width + text.x - text.x) * 0.5 -
+                                    this.tolerance;
+                                 a.toy = text.y;
+                              } else {
+                                 a.tox =
+                                    text.x +
+                                    (text.width + text.x - text.x) * 0.5 +
+                                    this.tolerance;
+                                 a.toy = text.y + text.height;
+                              }
+                           }
+                        });
+                     }
+                  });
+               }
             }
          } else if (text.isResizing) {
             text.size = Math.max(10, mouseY - text.y); // Ensure minimum size

@@ -63,7 +63,7 @@
 
          <main
             id="canvas-container"
-            class="grid grid-cols-[0.5fr_1fr] divide-x"
+            class="sm:grid sm:grid-cols-[0.5fr_1fr] sm:divide-x"
          >
             <div id="document" class="flex flex-col justify-start px-6 pt-16">
                <h1 class="text-2xl text-start">Canvas</h1>
@@ -80,7 +80,7 @@
                class="relative overflow-hidden h-[100dvh] w-full"
             >
                <div
-                  class="w-[42px] h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-sm flex flex-col absolute top-16 left-2 p-[2px]"
+                  class="w-[42px] h-fit mx-1 border-[1px] z-[999] border-zinc-400/50 rounded-sm hidden sm:flex flex-col absolute top-16 left-2 p-[2px]"
                >
                   <button
                      id="freeMode"
@@ -126,6 +126,19 @@
                         class="hover:bg-zinc-600/50 transition-all duration-200 w-[40px] h-[40px] px-2 rounded-sm flex justify-center items-center"
                      >
                         &seArr;
+                     </div>
+                  </button>
+
+                  <button
+                     class="cursor-pointer flex justify-center items-center rounded-[10%]"
+                     id="line"
+                  >
+                     <div
+                        class="hover:bg-zinc-600/50 transition-all duration-200 w-[40px] h-[40px] px-2 rounded-sm flex justify-center items-center relative"
+                     >
+                        <div
+                           class="absolute w-[68%] h-[5%] border border-l-zinc-900 rotate-[226deg] border-zinc-100"
+                        ></div>
                      </div>
                   </button>
 

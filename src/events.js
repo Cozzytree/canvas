@@ -1,5 +1,12 @@
 import Rectangle from "./rect.js";
-import { rectMap, circleMap, textMap, pencilMap, arrows } from "./main.js";
+import {
+   rectMap,
+   circleMap,
+   textMap,
+   pencilMap,
+   arrows,
+   lineMap,
+} from "./main.js";
 import { config, scrollBar } from "./config.js";
 import {
    canvas,
@@ -12,10 +19,12 @@ import {
    scrollContainer,
    docuemntDiv,
    canvasDiv,
+   line,
 } from "./selectors";
 import { Circle } from "./sphere.js";
 import { Text } from "./text.js";
 import { Arrows } from "./arrow.js";
+import Line from "./line.js";
 
 const newRect = document.getElementById("newRect");
 const newCircle = document.getElementById("newCircle");
@@ -50,10 +59,11 @@ newRect.addEventListener("click", (e) => {
       if (config.mode === "rect") {
          const temp = new Rectangle(x, y);
          rectMap.set(Math.random() * 10, temp);
-         temp.drawRect(temp); // Draw the new rectangle
+         temp.draw();
+         //  temp.drawRect(temp); // Draw the new rectangle
          config.mode = "free";
          changeStyle();
-         localStorage.setItem("rectMap", rectMap);
+         //  localStorage.setItem("rectMap", rectMap);
       }
    });
 });
@@ -135,6 +145,43 @@ lineArrow.addEventListener("click", () => {
       changeStyle();
       newArr.isActive = true;
       newArr.drawArrow(newArr.x, newArr.y, newArr.tox, newArr.toy, 2, "white");
+   });
+});
+
+// new line
+line.addEventListener("click", () => {
+   document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
+   config.mode = "line";
+   changeStyle();
+   const line = document.createElement("div");
+   line.classList.add("rectShape");
+   line.style.width = "150px";
+   line.style.height = "2px";
+   line.style.position = "absolute";
+
+   document.addEventListener("mousemove", (e) => {
+      // console.log(config.mode);
+      if (config.mode !== "line") return;
+      line.style.top = e.clientY + "px";
+      line.style.left = e.clientX + "px";
+      document.body.append(line);
+   });
+
+   canvas.addEventListener("click", (e) => {
+      if (config.mode !== "line") return;
+      line.remove();
+      const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+      const mouseY =
+         e.clientY -
+         canvas.getBoundingClientRect().top +
+         scrollBar.scrollPosition;
+      const newLine = new Line(mouseX, mouseY, mouseX + 140, mouseY);
+      lineMap.set(Math.random() * 10, newLine);
+
+      config.mode = "free";
+      changeStyle();
+      newLine.isActive = true;
+      newLine.drawLine(newLine.x, newLine.y, newLine.tox, newLine.toy);
    });
 });
 
@@ -228,51 +275,30 @@ function stopDrawing() {
 }
 
 export function changeStyle() {
-   switch (config.mode) {
-      case "pencil":
-         pencil.style.background = "#8080806b";
-         newRect.style.background = "transparent";
-         newCircle.style.background = "transparent";
-         freeMode.style.background = "transparent";
-         lineArrow.style.background = "transparent";
-         break;
-      case "rect":
-         newRect.style.background = "#8080806b";
-         pencil.style.background = "transparent";
-         newCircle.style.background = "transparent";
-         freeMode.style.background = "transparent";
-         lineArrow.style.background = "transparent";
-         break;
-      case "free":
-         freeMode.style.background = "#8080806b";
-         newRect.style.background = "transparent";
-         pencil.style.background = "transparent";
-         newCircle.style.background = "transparent";
-         lineArrow.style.background = "transparent";
-         break;
-      case "circle":
-         newCircle.style.background = "#8080806b";
-         freeMode.style.background = "transparent";
-         newRect.style.background = "transparent";
-         pencil.style.background = "transparent";
-         lineArrow.style.background = "transparent";
-         break;
-      case "arrowLine":
-         lineArrow.style.background = "#8080806b";
-         freeMode.style.background = "transparent";
-         newRect.style.background = "transparent";
-         pencil.style.background = "transparent";
-         newCircle.style.background = "transparent";
-         break;
-      default:
-         break;
+   const elements = {
+      pencil,
+      rect: newRect,
+      circle: newCircle,
+      free: freeMode,
+      arrowLine: lineArrow,
+      line,
+   };
+
+   // Reset all backgrounds to transparent
+   Object.values(elements).forEach(
+      (el) => (el.style.background = "transparent")
+   );
+
+   // Set the selected mode's background
+
+   if (config.mode in elements) {
+      elements[config.mode].style.background = "#8080806b";
    }
 }
-
 export function changeDoc() {
    switch (config.docMode) {
       case "both":
-         scrollContainer.classList.add("grid");
+         scrollContainer.classList.add("sm:grid");
          docuemntDiv.classList.remove("hidden");
          canvasDiv.classList.remove("hidden");
          switchBoth.classList.add("bg-zinc-400/30");
@@ -280,7 +306,7 @@ export function changeDoc() {
          switchDoc.classList.remove("bg-zinc-400/30");
          break;
       case "canvas":
-         scrollContainer.classList.remove("grid");
+         scrollContainer.classList.remove("sm:grid");
          docuemntDiv.classList.add("hidden");
          canvasDiv.classList.remove("hidden");
          switchCanvas.classList.add("bg-zinc-400/30");
@@ -288,7 +314,7 @@ export function changeDoc() {
          switchDoc.classList.remove("bg-zinc-400/30");
          break;
       case "doc":
-         scrollContainer.classList.remove("grid");
+         scrollContainer.classList.remove("sm:grid");
          canvasDiv.classList.add("hidden");
          docuemntDiv.classList.remove("hidden");
          switchDoc.classList.add("bg-zinc-400/30");

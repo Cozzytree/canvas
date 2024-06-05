@@ -1,5 +1,5 @@
 import { changeStyle } from "./events.js";
-import Shapes, { shape } from "./shape.js";
+import { shape } from "./shape.js";
 import { config, scrollBar } from "./config.js";
 import { canvas, scrollContainer, scrollThumb } from "./selectors.js";
 
@@ -8,6 +8,7 @@ const rectMap = new Map();
 const pencilMap = new Map();
 const textMap = new Map();
 const arrows = new Map();
+const lineMap = new Map();
 
 canvas.width = window.innerWidth;
 // canvas.height = window.innerHeight;
@@ -49,4 +50,4 @@ document.addEventListener("mouseup", () => {
    document.body.style.userSelect = "auto";
 });
 
-export { circleMap, rectMap, pencilMap, textMap, arrows };
+export { circleMap, rectMap, pencilMap, textMap, arrows, lineMap };

@@ -1,4 +1,11 @@
-import { rectMap, circleMap, textMap, arrows, pencilMap } from "./main";
+import {
+   rectMap,
+   circleMap,
+   textMap,
+   arrows,
+   pencilMap,
+   lineMap,
+} from "./main";
 import { canvas, context } from "./selectors";
 import { config, scrollBar } from "./config";
 
@@ -223,9 +230,9 @@ export default class Shapes {
          }
       });
 
-      canvas.addEventListener("mousemove", function (e) {
-         //  console.log(e);
-      });
+      //   canvas.addEventListener("mousemove", function (e) {
+      //      //  console.log(e);
+      //   });
 
       canvas.addEventListener(
          "mousedown",
@@ -235,11 +242,12 @@ export default class Shapes {
 
    draw() {
       context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-      const radius = 10; // Adjust the radius for the desired roundness
-      context.lineWidth = this.lineWidth;
+      const radius = 5; // Adjust the radius for the desired roundness
 
       context.save();
       context.translate(0, -scrollBar.scrollPosition);
+      context.lineWidth = this.lineWidth;
+      context.fillStyle = "white";
 
       rectMap.forEach((rect) => {
          const x = rect.x;
@@ -248,9 +256,6 @@ export default class Shapes {
          const height = rect.height;
 
          if (rect.isActive) {
-            context.save();
-            const dotRadius = 5;
-            context.lineWidth = 1;
             context.strokeStyle = "rgb(2, 211, 134)";
             context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
 
@@ -280,11 +285,8 @@ export default class Shapes {
                height + 2 * this.tolerance
             );
             context.stroke();
-
-            context.restore();
          }
          context.strokeStyle = "white";
-
          context.beginPath();
          context.moveTo(x + radius, y);
          context.arcTo(x + width, y, x + width, y + height, radius);
@@ -367,9 +369,6 @@ export default class Shapes {
       // context.restore();
       // context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
 
-      context.save();
-      context.fillStyle = "white";
-      context.lineWidth = 1;
       textMap.forEach((t) => {
          if (t.isActive) {
             context.save();
@@ -436,123 +435,77 @@ export default class Shapes {
             );
             currentY +=
                textMetrics.actualBoundingBoxAscent +
-               textMetrics.actualBoundingBoxDescent + this.tolerance;
+               textMetrics.actualBoundingBoxDescent +
+               this.tolerance;
          });
       });
-      context.restore();
 
       //variables to be used when creating the arrow
-      let headlen = 10;
+      let headlen = 6;
       arrows.forEach((arrow) => {
-         context.save();
          if (arrow.isActive) {
-            context.beginPath();
             context.strokeStyle = "rgb(2, 211, 134)";
             context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
 
-            context.beginPath();
-            context.arc(
-               arrow.x - this.tolerance,
-               arrow.y,
-               4,
-               0,
-               2 * Math.PI,
-               false
+            this.fourDots(
+               { x: arrow.x, y: arrow.y },
+               { x: arrow.tox, y: arrow.toy }
             );
-            context.fill();
-
-            context.beginPath();
-            if (arrow.x < arrow.tox) {
-               context.arc(
-                  arrow.tox + this.tolerance,
-                  arrow.toy,
-                  3,
-                  0,
-                  2 * Math.PI,
-                  false
-               );
-            } else {
-               context.arc(
-                  arrow.tox - this.tolerance,
-                  arrow.toy,
-                  3,
-                  0,
-                  2 * Math.PI,
-                  false
-               );
-            }
-
-            // if (Math.abs(arrow.y - arrow.toy) <= 10) {
-            //    context.arc(
-            //       arrow.tox + this.tolerance,
-            //       arrow.toy,
-            //       3,
-            //       0,
-            //       2 * Math.PI,
-            //       false
-            //    );
-            // } else if (arrow.y > arrow.toy) {
-            //    context.arc(
-            //       arrow.tox,
-            //       arrow.toy - this.tolerance,
-            //       3,
-            //       0,
-            //       2 * Math.PI,
-            //       false
-            //    );
-            // } else {
-            //    context.arc(
-            //       arrow.tox,
-            //       arrow.toy + this.tolerance,
-            //       3,
-            //       0,
-            //       2 * Math.PI,
-            //       false
-            //    );
-            // }
-            context.fill();
          } else {
             context.strokeStyle = "white";
          }
-         let headlen = 7; // Length of the arrowhead
 
-         // Calculate the angle for the arrowhead
-         let angle = Math.atan2(arrow.toy - arrow.y, arrow.tox - arrow.x);
-
-         // Begin drawing the main line
-         context.beginPath();
          context.moveTo(arrow.x, arrow.y);
 
          if (Math.abs(arrow.x - arrow.tox) >= 100) {
             // Calculate the perpendicular point
             let midpointX = (arrow.tox - arrow.x) * 0.8;
-            let midpointY = (arrow.toy - arrow.y) * 0.7;
 
-            // Draw line to the midpoint
-            context.lineTo(arrow.x + midpointX, arrow.y);
-
-            context.lineTo(arrow.x + midpointX, arrow.toy);
-
-            // context.lineTo(arrow.tox, arrow.y + midpointY);
+            context.arcTo(
+               arrow.x + midpointX,
+               arrow.y,
+               arrow.tox,
+               arrow.toy,
+               radius
+            );
+            // context.lineTo(arrow.x + midpointX, arrow.y);
+            context.arcTo(
+               arrow.x + midpointX,
+               arrow.toy,
+               arrow.tox,
+               arrow.toy,
+               radius
+            );
 
             // Draw line from the midpoint to the endpoint
-            context.lineTo(arrow.tox, arrow.toy);
-
-            context.lineWidth = 2;
-            context.stroke();
          } else {
             // If x is equal to tox, draw a straight line to the endpoint
-            context.lineTo(arrow.x, arrow.toy);
-            context.lineTo(arrow.tox, arrow.toy);
+
+            context.arcTo(arrow.x, arrow.toy, arrow.tox, arrow.toy, 10);
+            // Draw a line from the end of the arc to (arrow.tox, arrow.toy)
          }
          // Draw the arrowhead
-
-         context.moveTo(arrow.tox, arrow.toy);
-
-         context.lineWidth = 2;
+         context.lineTo(arrow.tox, arrow.toy);
+         context.lineWidth = 1.5;
          context.stroke();
 
-         if (arrow.x < arrow.tox) {
+         if (
+            Math.max(arrow.x, arrow.tox) - Math.min(arrow.x, arrow.tox) <=
+            20
+         ) {
+            context.beginPath();
+            context.moveTo(arrow.tox, arrow.toy);
+            if (arrow.toy < arrow.y) {
+               //    context.arcTo();
+               context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
+               context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
+            } else {
+               context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
+               context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
+            }
+
+            context.lineTo(arrow.tox, arrow.toy);
+         } else if (arrow.x < arrow.tox) {
             context.beginPath();
             context.moveTo(arrow.tox, arrow.toy);
             context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
@@ -565,34 +518,32 @@ export default class Shapes {
             context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
             context.lineTo(arrow.tox, arrow.toy);
          }
-         // if (Math.abs(arrow.y - arrow.toy) <= 10) {
-         // // Draw the arrowhead
-         //    context.beginPath();
-         //    context.moveTo(arrow.tox, arrow.toy);
-         //    context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
-         //    context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
-         //    context.lineTo(arrow.tox, arrow.toy);
-         // }
-         // else if (arrow.y > arrow.toy) {
-         //    context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
-         //    context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
-         //    context.lineTo(arrow.tox, arrow.toy);
-         // }
-         //   else if (arrow.y < arrow.toy) {
-         //    context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
-         //    context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
-         //    context.lineTo(arrow.tox, arrow.toy);
-         // }
 
-         // Draw the arrowhead outline
          context.stroke();
-         context.restore();
       });
+
+      lineMap.forEach((line) => {
+         if (line.isActive) {
+            context.lineWidth = 3;
+            context.fillStyle = "rgb(2, 211, 134)";
+            context.strokeStyle = "rgb(2, 211, 134)";
+            this.fourDots(
+               { x: line.x, y: line.y },
+               { x: line.tox, y: line.toy }
+            );
+         }
+         context.beginPath();
+         context.moveTo(line.x, line.y);
+         context.lineTo(line.tox, line.toy);
+         context.stroke();
+         context.closePath();
+      });
+
       context.restore();
    }
 
-   fourDots(tL, tR, bR, bL) {
-      const sides = [tL, tR, bR, bL];
+   fourDots(...sides) {
+      context.lineWidth = 1.7;
       for (let i = 0; i < sides.length; i++) {
          context.beginPath();
          context.arc(sides[i].x, sides[i].y, 4, 0, 2 * Math.PI, false);
@@ -706,9 +657,8 @@ export default class Shapes {
             arrow.isActive = true;
             arrow.isResizingEnd = true;
             isResizing = true;
-            return;
          } else if (
-            withinBounds(arrow.x, arrow.y, arrow.x, arrow.toy, this.tolerance)
+            withinBounds(arrow.x, arrow.y, arrow.x, arrow.y, this.tolerance)
          ) {
             arrow.isActive = true;
             arrow.isResizingStart = true;
