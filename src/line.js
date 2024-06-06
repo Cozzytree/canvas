@@ -9,6 +9,8 @@ export default class Line extends Shapes {
       this.y = y;
       this.tox = tox;
       this.toy = toy;
+      this.isResizingStart = false;
+      this.isResizingEnd = false;
    }
 
    drawLine(x, y, tox, toy) {
@@ -21,6 +23,8 @@ export default class Line extends Shapes {
       context.closePath();
 
       canvas.addEventListener("click", this.down.bind(this));
+    //   canvas.addEventListener("mousemove", this.move.bind(this));
+      canvas.addEventListener("mouseup", this.up.bind(this));
    }
 
    down(e) {
@@ -43,6 +47,33 @@ export default class Line extends Shapes {
 
          if (isNearStart || isNearEnd) {
             line.isActive = true;
+         }
+      });
+   }
+
+   move(e) {
+      const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+      const mouseY = e.clientY - canvas.getBoundingClientRect().top;
+      lineMap.forEach((line) => {
+         if (line.isResizingStart) {
+            line.isActive = true;
+            line.x = mouseX;
+            line.y = mouseY;
+            this.draw();
+         } else if (line.isResizingEnd) {
+            line.isActive = true;
+            line.tox = mouseX;
+            line.toy = mouseY;
+            this.draw();
+         }
+      });
+   }
+
+   up() {
+      lineMap.forEach((line) => {
+         if (line.isResizingEnd || line.isResizingStart) {
+            line.isResizingEnd = false;
+            line.isResizingStart = false;
          }
       });
    }

@@ -6,13 +6,13 @@ import {
    pencilMap,
    lineMap,
 } from "./main";
-import { canvas, context } from "./selectors";
-import { config, scrollBar } from "./config";
+import { canvas, context, line } from "./selectors";
+import { Scale, config, scrollBar } from "./config";
 
 export default class Shapes {
    constructor() {
       this.tolerance = 5.2;
-      this.lineWidth = 1;
+      this.lineWidth = 1.6;
       this.isDragging = false;
       this.isActive = false;
       this.isResizing = false;
@@ -20,12 +20,9 @@ export default class Shapes {
       this.verticalResizing = false;
 
       canvas.addEventListener("click", (e) => {
-         const clickX = e.clientX - canvas.getBoundingClientRect().left;
-         const clickY =
-            e.clientY -
-            canvas.getBoundingClientRect().top +
-            scrollBar.scrollPosition;
          if (config.mode === "pencil") return;
+
+         const { x: clickX, y: clickY } = this.getTransformedMouseCoords(e);
 
          // Reset all shapes to inactive
          const allShapes = [
@@ -33,6 +30,7 @@ export default class Shapes {
             ...circleMap.values(),
             ...arrows.values(),
             ...textMap.values(),
+            ...lineMap.values(),
          ];
          allShapes.forEach((shape) => {
             shape.isActive = false;
@@ -46,6 +44,8 @@ export default class Shapes {
          let square = null;
          let text = null;
          let arrow = null;
+         let minLine = null;
+         let minWidth = Infinity;
 
          // Check if the click is within any rectangle
          for (const [_, rect] of rectMap) {
@@ -97,7 +97,10 @@ export default class Shapes {
                   clickY >= arr.y - this.tolerance &&
                   clickY <= arr.toy + this.tolerance
                ) {
-                  if (arrow === null || arr.tox - arr.x < arrow.tox - arrow.x) {
+                  if (
+                     arrow === null ||
+                     Math.abs(arr.tox - arr.x) < Math.abs(arrow.tox - arrow.x)
+                  ) {
                      arrow = arr;
                   }
                }
@@ -115,46 +118,50 @@ export default class Shapes {
             }
          });
 
-         if (circle && !square && !text && !arrow) {
-            circle.isActive = true;
-         } else if (!circle && square && !text && !arrow) {
-            square.isActive = true;
-         } else if (!circle && !square && text && !arrow) {
-            text.isActive = true;
-         } else if (!circle && !square && !text && arrow) {
-            arrow.isActive = true;
-         } else if (circle && square && !text) {
-            if (square.width > 2 * circle.xRadius) {
-               circle.isActive = true;
-            } else {
-               square.isActive = true;
-            }
-         } else if (circle && !square && text) {
-            if (circle.xRadius * 2 < text.width) {
-               circle.isActive = true;
-            } else {
-               text.isActive = true;
-            }
-         } else if (!circle && square && text) {
-            if (square.width < text.width) {
-               square.isActive = true;
-            } else {
-               text.isActive = true;
-            }
-         } else if (circle && square && text) {
+         lineMap.forEach((l) => {
+            const width = Math.abs(l.tox - l.x);
+
             if (
-               circle.xRadius * 2 < text.width &&
-               circle.xRadius * 2 < square.width
+               width < minWidth &&
+               clickX >= Math.min(l.x, l.tox) &&
+               clickX <= Math.max(l.x, l.tox) &&
+               clickY >= Math.min(l.y, l.toy) &&
+               clickY <= Math.max(l.y, l.toy)
             ) {
-               circle.isActive = true;
-            } else if (
-               square.width < text.width &&
-               square.width < 2 * circle.xRadius
-            ) {
-               square.isActive = true;
-            } else {
-               text.isActive = true;
+               minLine = l;
+               minWidth = width;
             }
+         });
+
+         if (
+            circle &&
+            (!square || circle.xRadius * 2 < square.width) &&
+            (!text || circle.xRadius * 2 < text.width)
+         ) {
+            circle.isActive = true;
+         } else if (
+            square &&
+            (!circle || square.width < circle.xRadius * 2) &&
+            (!text || square.width < text.width) &&
+            (!minLine || square.width < Math.abs(minLine.tox - minLine.x))
+         ) {
+            square.isActive = true;
+         } else if (
+            text &&
+            (!circle || text.width < circle.xRadius * 2) &&
+            (!square || text.width < square.width)
+         ) {
+            text.isActive = true;
+         } else if (
+            arrow &&
+            (!square || Math.abs(arrow.tox - arrow.x) < square.width)
+         ) {
+            arrow.isActive = true;
+         } else if (
+            minLine &&
+            (!square || Math.abs(minLine.tox - minLine.x) < square.width)
+         ) {
+            minLine.isActive = true;
          }
 
          this.draw();
@@ -238,6 +245,8 @@ export default class Shapes {
          "mousedown",
          this.mouseDownDragAndResize.bind(this)
       );
+      canvas.addEventListener("mousemove", this.mouseMove.bind(this));
+      canvas.addEventListener("mouseup", this.mouseUp.bind(this));
    }
 
    draw() {
@@ -246,6 +255,7 @@ export default class Shapes {
 
       context.save();
       context.translate(0, -scrollBar.scrollPosition);
+      context.scale(Scale.scale, Scale.scale);
       context.lineWidth = this.lineWidth;
       context.fillStyle = "white";
 
@@ -286,8 +296,8 @@ export default class Shapes {
             );
             context.stroke();
          }
-         context.strokeStyle = "white";
          context.beginPath();
+         context.strokeStyle = "white";
          context.moveTo(x + radius, y);
          context.arcTo(x + width, y, x + width, y + height, radius);
          context.arcTo(x + width, y + height, x, y + height, radius);
@@ -551,15 +561,19 @@ export default class Shapes {
       }
    }
 
+   getTransformedMouseCoords(event) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = (event.clientX - rect.left) / Scale.scale;
+      const mouseY =
+         (event.clientY - rect.top + scrollBar.scrollPosition) / Scale.scale;
+      return { x: mouseX, y: mouseY };
+   }
+
    mouseDownDragAndResize(e) {
-      // if (this.isResizing) return;
       if (config.mode === "pencil") return;
       let isResizing = false;
-      const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-      const mouseY =
-         e.clientY -
-         canvas.getBoundingClientRect().top +
-         scrollBar.scrollPosition;
+
+      const { x: mouseX, y: mouseY } = this.getTransformedMouseCoords(e);
 
       // rect resize
       rectMap.forEach((rect) => {
@@ -735,10 +749,32 @@ export default class Shapes {
 
       if (isResizing) return;
 
+      lineMap.forEach((line) => {
+         if (
+            mouseX >= line.x - this.tolerance &&
+            mouseX <= line.x + this.tolerance &&
+            mouseY >= line.y - this.tolerance &&
+            mouseY <= line.y + this.tolerance
+         ) {
+            isResizing = true;
+            line.isResizingStart = true;
+         } else if (
+            mouseX >= line.tox - this.tolerance &&
+            mouseX <= line.tox + this.tolerance &&
+            mouseY >= line.toy - this.tolerance &&
+            mouseY <= line.toy + this.tolerance
+         ) {
+            isResizing = true;
+            line.isResizingEnd = true;
+         }
+      });
+      if (isResizing) return;
+
       let smallestCircle = null;
       let smallestRect = null;
       let smallestText = null;
       let arr = null;
+      let line = null;
 
       const checkRect = (rect) => {
          if (
@@ -873,10 +909,26 @@ export default class Shapes {
          }
       };
 
+      let minWidth = Infinity;
+      const simpleLine = (l) => {
+         const width = Math.abs(l.tox - l.x);
+
+         if (
+            width < minWidth &&
+            mouseX >= Math.min(l.x, l.tox) &&
+            mouseX <= Math.max(l.x, l.tox) &&
+            mouseY >= Math.min(l.y, l.toy) &&
+            mouseY <= Math.max(l.y, l.toy)
+         ) {
+            line = l;
+         }
+      };
+
       rectMap.forEach(checkRect);
       circleMap.forEach(checkCircle);
       textMap.forEach(checkText);
       arrows.forEach(arrow);
+      lineMap.forEach(simpleLine);
 
       const setDragging = (obj) => {
          obj.isDragging = true;
@@ -885,61 +937,600 @@ export default class Shapes {
          obj.offsetY = mouseY - obj.y;
       };
 
-      if (!smallestRect && !smallestText && smallestCircle) {
+      if (smallestCircle) {
          setDragging(smallestCircle);
-         return;
-      } else if (smallestRect && !smallestCircle && !smallestText) {
-         setDragging(smallestRect);
-      } else if (smallestText && !smallestCircle && !smallestRect) {
+      } else if (smallestRect) {
+         if (!smallestText) {
+            setDragging(smallestRect);
+         } else {
+            if (
+               smallestRect.width * smallestRect.height <
+               smallestText.width * smallestText.height
+            ) {
+               setDragging(smallestRect);
+            } else {
+               setDragging(smallestText);
+            }
+         }
+      } else if (smallestText) {
          setDragging(smallestText);
-      } else if (arr && !smallestCircle && !smallestRect && !smallestText) {
-         arr.isActive = true;
-         arr.isDragging = true;
-         arr.dragOffsetX = mouseX - arr.x;
-         arr.dragOffsetY = mouseY - arr.y;
-      } else if (arr && smallestRect && !smallestCircle && !smallestText) {
-         if (smallestRect.x + smallestRect.width < Math.max(arr.x, arr.tox)) {
-            setDragging(smallestRect);
-         } else {
-            arr.isActive = true;
-            arr.isDragging = true;
-            arr.dragOffsetX = mouseX - arr.x;
-            arr.dragOffsetY = mouseY - arr.y;
-         }
-      } else if (smallestCircle && smallestRect && !smallestText) {
-         if (
-            2 * smallestCircle.xRadius * 2 * smallestCircle.yRadius <
-            smallestRect.width * smallestRect.height
-         ) {
-            setDragging(smallestCircle);
-            return;
-         } else {
-            setDragging(smallestRect);
-            return;
-         }
-      } else if (!smallestCircle && smallestRect && smallestText) {
-         if (
-            smallestRect.width * smallestRect.height <
-            smallestText.width * smallestText.height
-         ) {
-            setDragging(smallestRect);
-            return;
-         } else {
-            setDragging(smallestText);
-            return;
-         }
-      } else if (smallestCircle && !smallestRect && smallestText) {
-         if (
-            2 * smallestCircle.xRadius * 2 * smallestCircle.yRadius <
-            smallestText.width * smallestText.height
-         ) {
-            setDragging(smallestCircle);
-            return;
-         } else {
-            setDragging(smallestText);
-            return;
-         }
+      } else if (arr) {
+         arr.offsetX = mouseX - arr.x;
+         arr.offsetY = mouseY - arr.y;
+         setDragging(arr);
+         //  if (
+         //     smallestRect &&
+         //     smallestRect.x + smallestRect.width < Math.max(arr.x, arr.tox)
+         //  ) {
+         //     setDraarragOffsetX = mouseX - arr.x;
+         //     arr.dragOffsetY = mouseY - arr.y;
+         //  }
+      } else if (line) {
+         if (line.isActive) return;
+         line.offsetX = mouseX - line.x;
+         line.offsetY = mouseY - line.y;
+         setDragging(line);
       }
+
+      //   if (!smallestRect && !smallestText && smallestCircle) {
+      //      setDragging(smallestCircle);
+      //      return;
+      //   } else if (smallestRect && !smallestCircle && !smallestText) {
+      //      setDragging(smallestRect);
+      //   } else if (smallestText && !smallestCircle && !smallestRect) {
+      //      setDragging(smallestText);
+      //   } else if (arr && !smallestCircle && !smallestRect && !smallestText) {
+      //      arr.isActive = true;
+      //      arr.isDragging = true;
+      //      arr.dragOffsetX = mouseX - arr.x;
+      //      arr.dragOffsetY = mouseY - arr.y;
+      //   } else if (arr && smallestRect && !smallestCircle && !smallestText) {
+      //      if (smallestRect.x + smallestRect.width < Math.max(arr.x, arr.tox)) {
+      //         setDragging(smallestRect);
+      //      } else {
+      //         arr.isActive = true;
+      //         arr.isDragging = true;
+      //         arr.dragOffsetX = mouseX - arr.x;
+      //         arr.dragOffsetY = mouseY - arr.y;
+      //      }
+      //   } else if (smallestCircle && smallestRect && !smallestText) {
+      //      if (
+      //         2 * smallestCircle.xRadius * 2 * smallestCircle.yRadius <
+      //         smallestRect.width * smallestRect.height
+      //      ) {
+      //         setDragging(smallestCircle);
+      //         return;
+      //      } else {
+      //         setDragging(smallestRect);
+      //         return;
+      //      }
+      //   } else if (!smallestCircle && smallestRect && smallestText) {
+      //      if (
+      //         smallestRect.width * smallestRect.height <
+      //         smallestText.width * smallestText.height
+      //      ) {
+      //         setDragging(smallestRect);
+      //         return;
+      //      } else {
+      //         setDragging(smallestText);
+      //         return;
+      //      }
+      //   } else if (smallestCircle && !smallestRect && smallestText) {
+      //      if (
+      //         2 * smallestCircle.xRadius * 2 * smallestCircle.yRadius <
+      //         smallestText.width * smallestText.height
+      //      ) {
+      //         setDragging(smallestCircle);
+      //         return;
+      //      } else {
+      //         setDragging(smallestText);
+      //         return;
+      //      }
+      //   }
+   }
+
+   mouseMove(e) {
+      if (config.mode === "pencil") return;
+      const { x: mouseX, y: mouseY } = this.getTransformedMouseCoords(e);
+
+      rectMap.forEach((rect) => {
+         if (rect.isDragging) {
+            rect.isActive = true;
+            rect.x = mouseX - rect.offsetX;
+            rect.y = mouseY - rect.offsetY;
+            if (rect.pointTo.length > 0) {
+               // let arc = arrows.get(rect.pointTo);
+               let arc = rect.pointTo.map((a) => {
+                  return arrows.get(a);
+               });
+               let arrowStartRect = [];
+               let arrowEndRect = [];
+
+               // get all the arrows connected to rect
+               arc.forEach((a) => {
+                  let start = rectMap.get(a.startTo);
+                  let end = rectMap.get(a.endTo);
+                  if (start) {
+                     arrowStartRect.push(start);
+                  }
+                  if (end) {
+                     arrowEndRect.push(end);
+                  }
+               });
+
+               if (arrowStartRect.length > 0) {
+                  arrowStartRect.forEach((ar) => {
+                     if (ar === rect) {
+                        arc.forEach((a) => {
+                           if (rectMap.get(a.startTo) === rect) {
+                              if (a.tox < rect.x) {
+                                 // a.tox is to the left of the rectangle
+                                 a.x = rect.x;
+                                 a.y = rect.y + rect.height * 0.5; // Middle of the left edge
+                              } else if (a.tox > rect.x + rect.width) {
+                                 // a.tox is to the right of the rectangle
+                                 a.x = rect.x + rect.width;
+                                 a.y = rect.y + rect.height * 0.5; // Middle of the right edge
+                              } else {
+                                 // a.tox is within the horizontal bounds of the rectangle
+                                 a.x = a.tox;
+                                 if (a.y < rect.y) {
+                                    // a.y is above the rectangle
+                                    a.y = rect.y;
+                                 } else if (a.tox > rect.y + rect.height) {
+                                    // a.y is below the rectangle
+                                    a.y = rect.y + rect.height;
+                                 } else {
+                                    // a.y is within the vertical bounds of the rectangle
+                                    a.y = rect.y; // Vertical center of the rectangle
+                                 }
+                              }
+                           }
+                        });
+                     }
+                  });
+               }
+
+               if (arrowEndRect.length > 0) {
+                  arrowEndRect.forEach((ar) => {
+                     if (ar === rect) {
+                        arc.forEach((a) => {
+                           if (rectMap.get(a.endTo) === rect) {
+                              if (a.x > rect.x + rect.width) {
+                                 // a.x is to the right of the rectangle
+                                 a.tox = rect.x + rect.width;
+                                 a.toy = rect.y + rect.height * 0.5; // Middle of the right edge
+                              } else if (a.x < rect.x) {
+                                 // a.x is to the left of the rectangle
+                                 a.tox = rect.x;
+                                 a.toy = rect.y + rect.height * 0.5; // Middle of the left edge
+                              } else {
+                                 // a.x is within the horizontal bounds of the rectangle
+                                 if (a.y < rect.y) {
+                                    // a.y is above the rectangle
+                                    a.tox = a.x;
+                                    a.toy = rect.y; // Top edge
+                                 } else if (a.y > rect.y + rect.height) {
+                                    // a.y is below the rectangle
+                                    a.tox = a.x;
+                                    a.toy = rect.y + rect.height; // Bottom edge
+                                 } else {
+                                    // a.x and a.y are inside the rectangle bounds
+                                    // Define some default behavior if needed
+                                    a.tox = rect.x + rect.width * 0.5; // Center of the rectangle
+                                    a.toy = rect.y + rect.height * 0.5; // Center of the rectangle
+                                 }
+                              }
+                           }
+                        });
+                     }
+                  });
+               }
+            }
+            this.draw();
+         }
+
+         if (rect.horizontalResizing) {
+            const oldPosition = rect.x + rect.width;
+            const newX = mouseX > rect.x ? rect.x : mouseX;
+
+            rect.x = newX;
+            if (mouseX < oldPosition) {
+               rect.width = Math.abs(oldPosition - mouseX);
+            } else if (mouseX > oldPosition)
+               rect.width = Math.abs(mouseX - rect.x); // Adjust width when mouseX is below rect.x
+
+            // rect.width = Math.abs(mouseX - rect.x); // Adjust width normally when mouseX is to the right
+         } else if (rect.verticalResizing) {
+            const oldPosition = rect.y + rect.height;
+            const newY = mouseY > rect.y ? rect.y : mouseY;
+
+            rect.y = newY;
+            if (mouseY < oldPosition) {
+               {
+                  rect.height = Math.abs(oldPosition - mouseY);
+               }
+            } else if (mouseY > oldPosition) {
+               rect.height = Math.abs(mouseY - rect.y);
+            }
+         } else if (rect.isResizing) {
+            rect.isActive = true;
+            rect.width = Math.abs(mouseX - rect.x);
+            rect.height = Math.abs(mouseY - rect.y);
+         }
+      });
+
+      // line resize
+      lineMap.forEach((line) => {
+         if (line.isDragging) {
+            const deltaX = mouseX - line.offsetX;
+            const deltaY = mouseY - line.offsetY;
+            const diffX = line.tox - line.x;
+            const diffY = line.toy - line.y;
+
+            line.x = deltaX;
+            line.y = deltaY;
+            line.tox = deltaX + diffX;
+            line.toy = deltaY + diffY;
+         }
+         if (line.isResizingStart) {
+            line.isActive = true;
+            line.x = mouseX;
+            line.y = mouseY;
+         } else if (line.isResizingEnd) {
+            line.isActive = true;
+            line.tox = mouseX;
+            line.toy = mouseY;
+         }
+      });
+
+      circleMap.forEach((arc) => {
+         if (arc.isDragging) {
+            arc.isActive = true;
+            arc.x = mouseX - arc.offsetX;
+            arc.y = mouseY - arc.offsetY;
+            if (arc.pointTo.length > 0) {
+               let arrow = arc.pointTo.map((a) => {
+                  return arrows.get(a);
+               });
+
+               let arrowStartSphere = [];
+               let arrowEndSphere = [];
+               arrow.forEach((a) => {
+                  let start = circleMap.get(a.startTo);
+                  let end = circleMap.get(a.endTo);
+                  if (start) {
+                     arrowStartSphere.push(start);
+                  }
+                  if (end) {
+                     arrowEndSphere.push(end);
+                  }
+               });
+
+               if (arrowStartSphere.length > 0) {
+                  arrowStartSphere.forEach((ar) => {
+                     if (ar == arc) {
+                        arrow.forEach((a) => {
+                           if (circleMap.get(a.startTo) === arc) {
+                              if (
+                                 a.tox >= arc.x - arc.xRadius &&
+                                 a.tox <= arc.x + arc.xRadius
+                              ) {
+                                 a.x = arc.x;
+                                 if (a.toy < a.y) {
+                                    a.y = arc.y - arc.yRadius;
+                                 } else {
+                                    a.y = arc.y + arc.yRadius;
+                                 }
+                              } else if (a.x < a.tox) {
+                                 a.x = arc.x + arc.xRadius;
+                                 a.y = arc.y;
+                              } else {
+                                 a.x = arc.x - arc.xRadius;
+                                 a.y = arc.y;
+                              }
+                           }
+                        });
+                     }
+                  });
+               }
+               if (arrowEndSphere.length > 0) {
+                  arrowEndSphere.forEach((ar) => {
+                     if (ar == arc) {
+                        arrow.forEach((a) => {
+                           if (circleMap.get(a.endTo) === arc) {
+                              if (
+                                 a.x >= arc.x - arc.xRadius &&
+                                 a.x <= arc.x + arc.xRadius
+                              ) {
+                                 // a.x is within the horizontal bounds of the circle
+                                 if (a.y <= arc.y) {
+                                    // a is above the circle
+                                    a.tox = arc.x;
+                                    a.toy = arc.y - arc.yRadius; // Top of the circle
+                                 } else {
+                                    // a is below the circle
+                                    a.tox = arc.x;
+                                    a.toy = arc.y + arc.yRadius; // Bottom of the circle
+                                 }
+                              } else if (a.x < arc.x - arc.xRadius) {
+                                 // a.x is to the left of the circle
+                                 a.tox = arc.x - arc.xRadius;
+                                 a.toy = arc.y;
+                              } else {
+                                 // a.x is to the right of the circle
+                                 a.tox = arc.x + arc.xRadius;
+                                 a.toy = arc.y;
+                              }
+                           }
+                        });
+                     }
+                  });
+               }
+            }
+         }
+
+         if (arc.horizontelResizing) {
+            arc.isActive = true;
+            arc.xRadius = Math.abs(mouseX - arc.x);
+         }
+         if (arc.verticalResizing) {
+            arc.isActive = true;
+            arc.yRadius = Math.abs(mouseY - arc.y);
+         }
+         if (arc.isResizing) {
+            arc.isActive = true;
+            arc.xRadius = Math.abs(mouseX - arc.x);
+            arc.yRadius = Math.abs(mouseY - arc.y);
+         }
+      });
+
+      arrows.forEach((arrow) => {
+         if (arrow.isResizingEnd) {
+            arrow.tox = mouseX;
+            arrow.toy = mouseY;
+         }
+         if (arrow.isResizingStart) {
+            arrow.x = mouseX;
+            arrow.y = mouseY;
+         }
+
+         if (arrow.isDragging) {
+            const deltaX = mouseX - arrow.offsetX;
+            const deltaY = mouseY - arrow.offsetY;
+            const diffX = arrow.tox - arrow.x;
+            const diffY = arrow.toy - arrow.y;
+
+            arrow.x = deltaX;
+            arrow.y = deltaY;
+            arrow.tox = deltaX + diffX;
+            arrow.toy = deltaY + diffY;
+         }
+      });
+
+      this.draw();
+   }
+
+   mouseUp(e) {
+      if (config.mode === "pencil") return;
+      const { x: mouseX, y: mouseY } = this.getTransformedMouseCoords(e);
+      rectMap.forEach((rect) => {
+         if (rect.isDragging) {
+            rect.x = mouseX - rect.offsetX;
+            rect.y = mouseY - rect.offsetY;
+
+            rect.isDragging = false;
+         }
+         rect.isActive = true;
+         rect.isResizing = false;
+         rect.verticalResizing = false;
+         rect.horizontalResizing = false;
+
+         //  // Convert the Map to an array and then to a JSON string
+         //  const rectMapArray = Array.from(rectMap.entries());
+         //  const rectMapJson = JSON.stringify(rectMapArray);
+
+         //  // Save the JSON string to localStorage
+         //  localStorage.setItem("rectMap", rectMapJson);
+
+         this.draw();
+      });
+
+      circleMap.forEach((arc) => {
+         arc.isDragging = false;
+
+         if (arc.horizontelResizing) {
+            arc.horizontelResizing = false;
+         }
+         if (arc.verticalResizing) {
+            arc.verticalResizing = false;
+         }
+         if (arc.isResizing) {
+            arc.isResizing = false;
+         }
+      });
+
+      arrows.forEach((arrow, key) => {
+         if (arrow.isDragging) {
+            arrow.isDragging = false;
+         }
+
+         // arrow end
+         if (arrow.isResizingEnd) {
+            arrow.isResizingEnd = false;
+
+            if (arrow.endTo) {
+               const theArc = circleMap.get(arrow.endTo);
+               const theRect = rectMap.get(arrow.endTo);
+               const text = textMap.get(arrow.endTo);
+
+               if (text && text.pointTo.length > 0) {
+                  if (
+                     arrow.tox < text.x ||
+                     arrow.tox > text.x + text.width ||
+                     arrow.toy < text.y ||
+                     arrow.toy > text.y + text.height
+                  ) {
+                     arrow.endTo = null;
+                     text.pointTo.filter((t) => t !== key);
+                  }
+               }
+
+               // end to rect
+               if (theRect && theRect.pointTo.length > 0) {
+                  if (
+                     arrow.tox < theRect.x ||
+                     arrow.tox > theRect.x + theRect.width ||
+                     arrow.toy < theRect.y ||
+                     arrow.toy > theRect.y + theRect.width ||
+                     arrow.startTo === arrow.endTo
+                  ) {
+                     arrow.endTo = null;
+                     // theRect.pointTo = null;
+                     theRect.pointTo.filter((p) => p !== key);
+                  }
+               }
+
+               // end to arc
+
+               if (theArc && theArc.pointTo.length > 0) {
+                  const parameter = Math.sqrt(
+                     (arrow.tox - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
+                  );
+                  if (
+                     parameter > theArc.xRadius &&
+                     parameter > theArc.yRadius
+                  ) {
+                     arrow.endTo = null;
+                     // theRect.pointTo = null;
+                     theArc.pointTo.filter((p) => p !== key);
+                  }
+               }
+            }
+
+            // arrow end point to rect
+            rectMap.forEach((rect, rectKey) => {
+               if (
+                  arrow.tox >= rect.x - this.tolerance &&
+                  arrow.tox <= rect.x + rect.width + this.tolerance &&
+                  arrow.toy >= rect.y - this.tolerance &&
+                  arrow.toy <= rect.y + rect.height + this.tolerance
+               ) {
+                  if (rect.pointTo.length > 0) {
+                     rect.pointTo.forEach((r) => {
+                        if (r === key) return;
+                        else {
+                           rect.pointTo.push(key);
+                           arrow.endTo = rectKey;
+                        }
+                     });
+                  } else {
+                     rect.pointTo.push(key);
+                     arrow.endTo = rectKey;
+                  }
+               }
+            });
+
+            // arrow end point to sphere
+            circleMap.forEach((arc, arckey) => {
+               const parameter = Math.sqrt(
+                  (arrow.tox - arc.x) ** 2 + (arrow.toy - arc.y) ** 2
+               );
+               if (parameter < arc.xRadius && parameter < arc.yRadius) {
+                  if (arc.pointTo.length > 0) {
+                     arc.pointTo.forEach((a) => {
+                        if (a === key) return;
+                        else {
+                           arc.pointTo.push(key);
+                           arrow.endTo = arckey;
+                        }
+                     });
+                  } else {
+                     arc.pointTo.push(key);
+                     arrow.endTo = arckey;
+                  }
+               }
+            });
+
+            //point to text
+            textMap.forEach((t, textKey) => {
+               if (
+                  arrow.tox >= t.x &&
+                  arrow.tox <= t.x + t.width &&
+                  arrow.toy >= t.y &&
+                  arrow.toy <= t.y + t.height
+               ) {
+                  arrow.endTo = textKey;
+                  t.pointTo.push(key);
+               }
+            });
+         }
+
+         if (arrow.isResizingStart) {
+            arrow.isResizingStart = false;
+
+            if (arrow.startTo) {
+               const theArc = circleMap.get(arrow.startTo);
+               const theRect = rectMap.get(arrow.startTo);
+
+               if (theRect && theRect.pointTo.length > 0) {
+                  if (
+                     arrow.tox < theRect.x ||
+                     arrow.tox > theRect.x + theRect.width ||
+                     arrow.toy < theRect.y ||
+                     arrow.toy > theRect.y + theRect.width
+                  ) {
+                     arrow.startTo = null;
+                     // theRect.pointTo = null;
+                     theRect.pointTo.filter((p) => p !== key);
+                  }
+               }
+
+               if (theArc && theArc.pointTo.length > 0) {
+                  const parameter = Math.sqrt(
+                     (arrow.tox - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
+                  );
+                  if (
+                     parameter > theArc.xRadius &&
+                     parameter > theArc.yRadius
+                  ) {
+                     arrow.endTo = null;
+                     // theRect.pointTo = null;
+                     theArc.pointTo.filter((p) => p !== key);
+                  }
+               }
+            }
+
+            rectMap.forEach((rect, rectKey) => {
+               if (
+                  arrow.x >= rect.x - this.tolerance &&
+                  arrow.x <= rect.x + rect.width + this.tolerance &&
+                  arrow.y >= rect.y - this.tolerance &&
+                  arrow.y <= rect.y + rect.height + this.tolerance
+               ) {
+                  rect.pointTo.push(key);
+                  arrow.startTo = rectKey;
+               }
+            });
+            circleMap.forEach((arc, arcKey) => {
+               const parameter = Math.sqrt(
+                  (arrow.x - arc.x) ** 2 + (arrow.y - arc.y) ** 2
+               );
+               if (parameter < arc.xRadius && parameter < arc.yRadius) {
+                  arrow.startTo = arcKey;
+                  arc.pointTo.push(key);
+               }
+            });
+         }
+      });
+
+      lineMap.forEach((line) => {
+         if (line.isResizingEnd || line.isResizingStart || line.isDragging) {
+            line.isResizingEnd = false;
+            line.isResizingStart = false;
+            line.isDragging = false;
+         }
+      });
    }
 }
 

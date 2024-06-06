@@ -11,6 +11,7 @@ const switchBoth = document.getElementById("switch-both");
 const docuemntDiv = document.getElementById("document");
 const canvasDiv = document.getElementById("canvas-div");
 const line = document.getElementById("line");
+const zoomText = document.getElementById("zoomText");
 
 let IS_PENCIL_DRAWING = false;
 let LAST_X = 0;
@@ -33,4 +34,5 @@ export {
    docuemntDiv,
    canvasDiv,
    line,
+   zoomText,
 };

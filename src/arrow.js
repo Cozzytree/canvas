@@ -17,11 +17,11 @@ export class Arrows extends Shapes {
       this.isResizingEnd = false;
       this.isResizingStart = false;
 
-      this.mouseMoveListener = this.mouseMd.bind(this);
-      this.mouseUpListener = this.mousep.bind(this);
+      //   this.mouseMoveListener = this.mouseMd.bind(this);
+      //   this.mouseUpListener = this.mousep.bind(this);
 
-      canvas.addEventListener("mousemove", this.mouseMoveListener);
-      canvas.addEventListener("mouseup", this.mouseUpListener);
+      //   canvas.addEventListener("mousemove", this.mouseMoveListener);
+      //   canvas.addEventListener("mouseup", this.mouseUpListener);
    }
 
    mouseD(e) {

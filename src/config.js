@@ -8,3 +8,8 @@ export const scrollBar = {
    isDragging: false,
    startY: 0,
 };
+
+export const Scale = {
+   scale: 1,
+   scalingFactor: 1.1,
+};

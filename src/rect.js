@@ -35,14 +35,14 @@ export default class Rectangle extends Shapes {
 
       // canvas.addEventListener("mousedown", this.mouseDownforResizing.bind(this));
 
-      canvas.addEventListener("mousemove", this.mouseMove.bind(this));
-      canvas.addEventListener(
-         "mousemove",
-         this.mouseMoveforResizing.bind(this)
-      );
+      //   canvas.addEventListener("mousemove", this.mouseMove.bind(this));
+      //   canvas.addEventListener(
+      //      "mousemove",
+      //      this.mouseMoveforResizing.bind(this)
+      //   );
 
-      canvas.addEventListener("mouseup", this.mouseUp.bind(this));
-      canvas.addEventListener("mouseup", this.mouseUpforResizing.bind(this));
+      //   canvas.addEventListener("mouseup", this.mouseUp.bind(this));
+      //   canvas.addEventListener("mouseup", this.mouseUpforResizing.bind(this));
    }
 
    mouseMove(e) {
@@ -143,7 +143,7 @@ export default class Rectangle extends Shapes {
                   });
                }
             }
-            rect.draw();
+            // rect.draw();
          }
       });
    }
@@ -163,6 +163,7 @@ export default class Rectangle extends Shapes {
             rect.isDragging = false;
          }
       });
+ 
    }
 
    drawRect(rect) {

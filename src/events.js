@@ -7,7 +7,7 @@ import {
    arrows,
    lineMap,
 } from "./main.js";
-import { config, scrollBar } from "./config.js";
+import { Scale, config, scrollBar } from "./config.js";
 import {
    canvas,
    pencil,
@@ -20,11 +20,13 @@ import {
    docuemntDiv,
    canvasDiv,
    line,
+   zoomText,
 } from "./selectors";
 import { Circle } from "./sphere.js";
 import { Text } from "./text.js";
 import { Arrows } from "./arrow.js";
 import Line from "./line.js";
+import { shape } from "./shape.js";
 
 const newRect = document.getElementById("newRect");
 const newCircle = document.getElementById("newCircle");
@@ -51,6 +53,7 @@ newRect.addEventListener("click", (e) => {
    // Listen for click on the canvas to place the rectangle inside it
    canvas.addEventListener("click", (e) => {
       shape.remove();
+
       const x = e.clientX - canvas.getBoundingClientRect().left;
       const y =
          e.clientY -
@@ -63,7 +66,6 @@ newRect.addEventListener("click", (e) => {
          //  temp.drawRect(temp); // Draw the new rectangle
          config.mode = "free";
          changeStyle();
-         //  localStorage.setItem("rectMap", rectMap);
       }
    });
 });
@@ -73,27 +75,25 @@ newCircle.addEventListener("click", (e) => {
    document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
    config.mode = "circle";
    changeStyle();
-   const shape = document.createElement("div");
-   shape.classList.add("rectShape");
-   shape.style.width = "100px";
-   shape.style.height = "100px";
-   shape.style.position = "absolute";
-   shape.style.borderRadius = "100%";
+   const rectShape = document.createElement("div");
+   rectShape.classList.add("rectShape");
+   rectShape.style.width = "100px";
+   rectShape.style.height = "100px";
+   rectShape.style.position = "absolute";
+   rectShape.style.borderRadius = "100%";
 
    document.addEventListener("mousemove", (e) => {
       if (config.mode !== "circle") return;
-      shape.style.top = e.clientY + "px";
-      shape.style.left = e.clientX + "px";
-      document.body.append(shape);
+      rectShape.style.top = e.clientY + "px";
+      rectShape.style.left = e.clientX + "px";
+      document.body.append(rectShape);
    });
 
    canvas.addEventListener("click", (e) => {
-      shape.remove();
-      const x = e.clientX - canvas.getBoundingClientRect().left;
-      const y =
-         e.clientY -
-         canvas.getBoundingClientRect().top +
-         scrollBar.scrollPosition;
+      rectShape.remove();
+
+      const { x, y } = shape.getTransformedMouseCoords(e);
+
       if (config.mode === "circle") {
          const temp = new Circle(x + 50, y + 50);
          circleMap.set(Math.random() * 10, temp);
@@ -215,6 +215,38 @@ canvas.addEventListener("dblclick", function (event) {
       input.remove();
    });
 });
+
+window.addEventListener(
+   "wheel",
+   (e) => {
+      // Get the bounding rectangle of the canvas
+      const rect = canvas.getBoundingClientRect();
+
+      // Calculate the mouse position relative to the canvas
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      if (
+         e.ctrlKey &&
+         mouseX >= 0 &&
+         mouseX <= canvas.width &&
+         mouseY >= 0 &&
+         mouseY <= canvas.height
+      ) {
+         e.preventDefault();
+         if (e.deltaY > 0) {
+            Scale.scale /= Scale.scalingFactor;
+         } else {
+            Scale.scale *= Scale.scalingFactor;
+         }
+         // Round the scale to one decimal place
+         Scale.scale = Math.round(Scale.scale * 10) / 10;
+         zoomText.textContent = `${parseInt(Scale.scale * 100)}%`;
+         shape.draw();
+      }
+   },
+   { passive: false }
+);
 
 let isDrawing = false;
 let lastX = 0;

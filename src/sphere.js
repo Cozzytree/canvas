@@ -13,11 +13,11 @@ export class Circle extends Shapes {
       this.type = "sphere";
       this.pointTo = [];
 
-      canvas.addEventListener("mousemove", this.mouseMove.bind(this));
-      canvas.addEventListener("mouseup", this.mouseUp.bind(this));
+      //   canvas.addEventListener("mousemove", this.mouseMove.bind(this));
+      //   canvas.addEventListener("mouseup", this.mouseUp.bind(this));
 
-      canvas.addEventListener("mousemove", this.mouseMoveResize.bind(this));
-      canvas.addEventListener("mouseup", this.mouseUpResize.bind(this));
+      //   canvas.addEventListener("mousemove", this.mouseMoveResize.bind(this));
+      //   canvas.addEventListener("mouseup", this.mouseUpResize.bind(this));
    }
 
    mouseMove(event) {

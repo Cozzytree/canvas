@@ -3,6 +3,12 @@ import { shape } from "./shape.js";
 import { config, scrollBar } from "./config.js";
 import { canvas, scrollContainer, scrollThumb } from "./selectors.js";
 
+// Retrieve the JSON string from localStorage
+const retrievedRectMapJson = localStorage.getItem("rectMap");
+
+// Parse the JSON string back to an array
+const retrievedRectMapArray = JSON.parse(retrievedRectMapJson);
+
 const circleMap = new Map();
 const rectMap = new Map();
 const pencilMap = new Map();
