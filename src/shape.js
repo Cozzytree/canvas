@@ -11,8 +11,8 @@ import { Scale, config, scrollBar } from "./config";
 
 export default class Shapes {
    constructor() {
-      this.tolerance = 5.2;
-      this.lineWidth = 1.6;
+      this.tolerance = 6;
+      this.lineWidth = 1.7;
       this.isDragging = false;
       this.isActive = false;
       this.isResizing = false;
@@ -200,6 +200,7 @@ export default class Shapes {
                   if (arrow.endTo) {
                      const rect = rectMap.get(arrow.endTo);
                      const arc = circleMap.get(arrow.endTo);
+                     const text = textMap.get(arrow.endTo);
 
                      if (arc) {
                         arc.pointTo = arc.pointTo.filter((a) => a !== key);
@@ -207,15 +208,25 @@ export default class Shapes {
                      if (rect) {
                         rect.pointTo = rect.pointTo.filter((a) => a !== key);
                      }
+
+                     if (text) {
+                        text.pointTo = text.pointTo.filter((a) => a !== key);
+                     }
                   }
                   if (arrow.startTo) {
                      const rect = rectMap.get(arrow.startTo);
                      const arc = circleMap.get(arrow.startTo);
+                     const text = textMap.get(arrow.startTo);
+
                      if (arc) {
                         arc.pointTo = arc.pointTo.filter((a) => a !== key);
                      }
                      if (rect) {
                         rect.pointTo = rect.pointTo.filter((a) => a !== key);
+                     }
+
+                     if (text) {
+                        text.pointTo = text.pointTo.filter((a) => a !== key);
                      }
                   }
                   arrows.delete(key);
@@ -414,8 +425,8 @@ export default class Shapes {
             context.restore();
          }
          // Set the font size before measuring the text
+         context.fillStyle = "white";
          context.font = `${t.size}px Arial`;
-
          let maxWidth = 0;
          let cumulativeHeight = 0;
 
@@ -770,6 +781,20 @@ export default class Shapes {
       });
       if (isResizing) return;
 
+      textMap.forEach((text) => {
+         if (
+            mouseX > text.x + text.width &&
+            mouseX <= text.x + text.width + this.tolerance &&
+            mouseY > text.y + text.height &&
+            mouseY <= text.y + text.height + this.tolerance
+         ) {
+            isResizing = true;
+            text.isResizing = true;
+         }
+      });
+
+      if (isResizing) return;
+
       let smallestCircle = null;
       let smallestRect = null;
       let smallestText = null;
@@ -1040,11 +1065,19 @@ export default class Shapes {
             rect.y = mouseY - rect.offsetY;
             if (rect.pointTo.length > 0) {
                // let arc = arrows.get(rect.pointTo);
-               let arc = rect.pointTo.map((a) => {
-                  return arrows.get(a);
-               });
-               let arrowStartRect = [];
+               let arc = [];
+               let line = [];
                let arrowEndRect = [];
+               let arrowStartRect = [];
+
+               rect.pointTo.forEach((a) => {
+                  let arr = arrows.get(a);
+                  let l = lineMap.get(a);
+
+                  if (arr) arc.push(arr);
+
+                  if (l) line.push(l);
+               });
 
                // get all the arrows connected to rect
                arc.forEach((a) => {
@@ -1057,6 +1090,19 @@ export default class Shapes {
                      arrowEndRect.push(end);
                   }
                });
+
+               if (line.length > 0) {
+                  line.forEach((l) => {
+                     let start = rectMap.get(l.startTo);
+                     let end = rectMap.get(l.endTo);
+                     if (start) {
+                        arrowStartRect.push(start);
+                     }
+                     if (end) {
+                        arrowEndRect.push(end);
+                     }
+                  });
+               }
 
                if (arrowStartRect.length > 0) {
                   arrowStartRect.forEach((ar) => {
@@ -1084,6 +1130,33 @@ export default class Shapes {
                                     // a.y is within the vertical bounds of the rectangle
                                     a.y = rect.y; // Vertical center of the rectangle
                                  }
+                              }
+                           }
+                        });
+
+                        line.forEach((l) => {
+                           if (rectMap.get(l.startTo) === rect) {
+                              if (l.toy < rect.y) {
+                                 l.x =
+                                    rect.x +
+                                    (rect.x + rect.width - rect.x) * 0.5;
+                                 l.y = rect.y;
+                              } else if (
+                                 l.toy >= rect.y &&
+                                 l.toy <= rect.y + rect.height
+                              ) {
+                                 if (l.tox > rect.x) {
+                                    l.x = rect.x + rect.width;
+                                 } else l.x = rect.x;
+
+                                 l.y =
+                                    rect.y +
+                                    (rect.y + rect.height - rect.y) * 0.5;
+                              } else {
+                                 l.x =
+                                    rect.x +
+                                    (rect.x + rect.width - rect.x) * 0.5;
+                                 l.y = rect.y + rect.height;
                               }
                            }
                         });
@@ -1308,6 +1381,73 @@ export default class Shapes {
          }
       });
 
+      textMap.forEach((text) => {
+         if (text.isDragging) {
+            text.x = mouseX - text.offsetX;
+            text.y = mouseY - text.offsetY;
+            if (text.pointTo.length > 0) {
+               let arcs = text.pointTo.map((t) => {
+                  return arrows.get(t);
+               });
+               let arrowStart = [];
+               let arrowEnd = [];
+
+               arcs.forEach((a) => {
+                  let start = textMap.get(a.startTo);
+                  let end = textMap.get(a.endTo);
+                  if (start) {
+                     arrowStart.push(start);
+                  }
+                  if (end) {
+                     arrowEnd.push(end);
+                  }
+               });
+
+               if (arrowStart.length > 0) {
+                  arrowStart.forEach((ar) => {
+                     if (ar === text) {
+                        arcs.forEach((a) => {
+                           if (textMap.get(a.startTo) === text) {
+                              if (a.toy < a.y) {
+                                 a.y = text.y - this.tolerance;
+                              } else
+                                 a.y = text.y + text.height + this.tolerance;
+
+                              a.x =
+                                 text.x + (text.width + text.x - text.x) * 0.5;
+                           }
+                        });
+                     }
+                  });
+               }
+
+               if (arrowEnd.length > 0) {
+                  arrowEnd.forEach((ar) => {
+                     if (ar === text) {
+                        arcs.forEach((a) => {
+                           if (textMap.get(a.endTo) === text) {
+                              if (a.y < a.toy) {
+                                 a.tox =
+                                    text.x +
+                                    (text.width + text.x - text.x) * 0.5;
+                                 a.toy = text.y - this.tolerance;
+                              } else {
+                                 a.tox =
+                                    text.x +
+                                    (text.width + text.x - text.x) * 0.5;
+                                 a.toy = text.y + text.height + this.tolerance;
+                              }
+                           }
+                        });
+                     }
+                  });
+               }
+            }
+         } else if (text.isResizing) {
+            text.size = Math.max(10, mouseY - text.y); // Ensure minimum size
+         }
+      });
+
       this.draw();
    }
 
@@ -1472,13 +1612,14 @@ export default class Shapes {
             if (arrow.startTo) {
                const theArc = circleMap.get(arrow.startTo);
                const theRect = rectMap.get(arrow.startTo);
+               const theText = textMap.get(arrow.startTo);
 
                if (theRect && theRect.pointTo.length > 0) {
                   if (
-                     arrow.tox < theRect.x ||
-                     arrow.tox > theRect.x + theRect.width ||
-                     arrow.toy < theRect.y ||
-                     arrow.toy > theRect.y + theRect.width
+                     arrow.x < theRect.x ||
+                     arrow.x > theRect.x + theRect.width ||
+                     arrow.y < theRect.y ||
+                     arrow.y > theRect.y + theRect.width
                   ) {
                      arrow.startTo = null;
                      // theRect.pointTo = null;
@@ -1488,7 +1629,7 @@ export default class Shapes {
 
                if (theArc && theArc.pointTo.length > 0) {
                   const parameter = Math.sqrt(
-                     (arrow.tox - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
+                     (arrow.x - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
                   );
                   if (
                      parameter > theArc.xRadius &&
@@ -1497,6 +1638,18 @@ export default class Shapes {
                      arrow.endTo = null;
                      // theRect.pointTo = null;
                      theArc.pointTo.filter((p) => p !== key);
+                  }
+               }
+
+               if (theText && theText.pointTo.length > 0) {
+                  if (
+                     arrow.tox < theText.x ||
+                     arrow.tox > theText.x + theText.width ||
+                     arrow.toy < theText.y ||
+                     arrow.toy > theText.y + theText.height
+                  ) {
+                     arrow.pointTo = null;
+                     theText.pointTo.filter((t) => t !== key);
                   }
                }
             }
@@ -1521,14 +1674,67 @@ export default class Shapes {
                   arc.pointTo.push(key);
                }
             });
+            textMap.forEach((text, textKey) => {
+               if (
+                  arrow.x >= text.x - this.tolerance &&
+                  arrow.x <= text.x + text.width + this.tolerance &&
+                  arrow.y >= text.y - this.tolerance &&
+                  arrow.y <= text.y + text.height + this.tolerance
+               ) {
+                  text.pointTo.push(key);
+                  arrow.startTo = textKey;
+               }
+            });
          }
       });
 
-      lineMap.forEach((line) => {
-         if (line.isResizingEnd || line.isResizingStart || line.isDragging) {
-            line.isResizingEnd = false;
-            line.isResizingStart = false;
+      lineMap.forEach((line, key) => {
+         if (line.isDragging) {
             line.isDragging = false;
+         }
+         if (line.isResizingStart) {
+            line.isResizingStart = false;
+            let rect = rectMap.get(line.startTo);
+
+            if (rect && rect.pointTo.length > 0) {
+               if (
+                  line.x < rect.x ||
+                  line.x > rect.x + rect.width ||
+                  line.y < rect.y ||
+                  line.y > rect.y + rect.height
+               ) {
+                  rect.pointTo.filter((r) => {
+                     let end = rectMap.get(line.endTo);
+                     return r !== key || r !== end;
+                  });
+                  line.startTo = null;
+               }
+            }
+
+            rectMap.forEach((rect, rectKey) => {
+               if (
+                  line.x >= rect.x - this.tolerance &&
+                  line.x <= rect.x + rect.width + this.tolerance
+                  //   line.y >= rect.y - this.tolerance &&
+                  //   line.y <= rect.y + rect.headlen + this.tolerance
+               ) {
+                  rect.pointTo.push(key);
+                  line.startTo = rectKey;
+                  console.log(line);
+               }
+            });
+         } else if (line.isResizingEnd) {
+            line.isResizingEnd = false;
+         }
+      });
+
+      textMap.forEach((text) => {
+         if (text.isDragging) {
+            text.x = mouseX - text.offsetX;
+            text.y = mouseY - text.offsetY;
+            text.isDragging = false;
+         } else if (text.isResizing) {
+            text.isResizing = false;
          }
       });
    }

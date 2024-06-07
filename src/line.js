@@ -11,6 +11,8 @@ export default class Line extends Shapes {
       this.toy = toy;
       this.isResizingStart = false;
       this.isResizingEnd = false;
+      this.startTo = null;
+      this.endTo = null;
    }
 
    drawLine(x, y, tox, toy) {
@@ -23,7 +25,7 @@ export default class Line extends Shapes {
       context.closePath();
 
       canvas.addEventListener("click", this.down.bind(this));
-    //   canvas.addEventListener("mousemove", this.move.bind(this));
+      //   canvas.addEventListener("mousemove", this.move.bind(this));
       canvas.addEventListener("mouseup", this.up.bind(this));
    }
 

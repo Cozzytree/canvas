@@ -12,9 +12,9 @@ export class Text extends Shapes {
       this.content = content;
       this.pointTo = [];
 
-      canvas.addEventListener("mousedown", this.mouseDown.bind(this));
-      canvas.addEventListener("mousemove", this.mouseMove.bind(this));
-      canvas.addEventListener("mouseup", this.mouseUp.bind(this));
+      //   canvas.addEventListener("mousedown", this.mouseDown.bind(this));
+      //   canvas.addEventListener("mousemove", this.mouseMove.bind(this));
+      //   canvas.addEventListener("mouseup", this.mouseUp.bind(this));
    }
 
    mouseDown(e) {
@@ -71,12 +71,14 @@ export class Text extends Shapes {
                      if (ar === text) {
                         arcs.forEach((a) => {
                            if (textMap.get(a.startTo) === text) {
+                              a.x = text.x + text.width;
+                              a.y = text.y + text.height;
                            }
                         });
                      }
                   });
                }
-               
+
                if (arrowEnd.length > 0) {
                   arrowEnd.forEach((ar) => {
                      if (ar === text) {
@@ -104,7 +106,6 @@ export class Text extends Shapes {
          } else if (text.isResizing) {
             text.size = Math.max(10, mouseY - text.y); // Ensure minimum size
          }
-         text.draw();
       });
    }
 
