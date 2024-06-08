@@ -53,7 +53,7 @@ export default class Rectangle extends Shapes {
 //          if (rect.isDragging) {
 //             rect.isActive = true;
 //             rect.x = mouseX - rect.offsetX;
-//             rect.y = mouseY - rect.offsetY + scrollBar.scrollPosition;
+//             rect.y = mouseY - rect.offsetY + scrollBar.scrollPositionY;
 //             if (rect.pointTo.length > 0) {
 //                // let arc = arrows.get(rect.pointTo);
 //                let arc = rect.pointTo.map((a) => {
@@ -158,7 +158,7 @@ export default class Rectangle extends Shapes {
 //                e.clientY -
 //                canvas.getBoundingClientRect().top -
 //                rect.offsetY +
-//                scrollBar.scrollPosition;
+//                scrollBar.scrollPositionY;
 //             rect.draw();
 //             rect.isDragging = false;
 //          }
@@ -195,7 +195,7 @@ export default class Rectangle extends Shapes {
 //       const mouseY =
 //          e.clientY -
 //          canvas.getBoundingClientRect().top +
-//          scrollBar.scrollPosition;
+//          scrollBar.scrollPositionY;
 
 //       rectMap.forEach((rect) => {
 //          if (rect.horizontalResizing) {

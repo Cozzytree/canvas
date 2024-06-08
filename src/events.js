@@ -58,7 +58,7 @@ newRect.addEventListener("click", (e) => {
       const y =
          e.clientY -
          canvas.getBoundingClientRect().top +
-         scrollBar.scrollPosition;
+         scrollBar.scrollPositionY;
       if (config.mode === "rect") {
          const temp = new Rectangle(x, y);
          rectMap.set(Math.random() * 10, temp);
@@ -136,7 +136,7 @@ lineArrow.addEventListener("click", () => {
       const mouseY =
          e.clientY -
          canvas.getBoundingClientRect().top +
-         scrollBar.scrollPosition;
+         scrollBar.scrollPositionY;
 
       const newArr = new Arrows(mouseX, mouseY, mouseX + 100, mouseY);
 
@@ -174,7 +174,7 @@ line.addEventListener("click", () => {
       const mouseY =
          e.clientY -
          canvas.getBoundingClientRect().top +
-         scrollBar.scrollPosition;
+         scrollBar.scrollPositionY;
       const newLine = new Line(mouseX, mouseY, mouseX + 140, mouseY);
       lineMap.set(Math.random() * 10, newLine);
 
@@ -202,7 +202,7 @@ canvas.addEventListener("dblclick", function (event) {
       const mouseY =
          event.clientY -
          canvas.getBoundingClientRect().top +
-         scrollBar.scrollPosition;
+         scrollBar.scrollPositionY;
       const content = e.target.value.split("\n");
       const newText = new Text(mouseX, mouseY, 15, content);
       textMap.set(Math.random() * 100, newText);

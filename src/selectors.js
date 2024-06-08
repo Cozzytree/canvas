@@ -5,6 +5,7 @@ const context = canvas.getContext("2d");
 const setText = document.getElementById("Text");
 const scrollContainer = document.getElementById("canvas-container");
 const scrollThumb = document.getElementById("scroll-thumb");
+const scrollThumbX = document.getElementById("scroll-thumb-x");
 const switchDoc = document.getElementById("switch-document");
 const switchCanvas = document.getElementById("switch-canvas");
 const switchBoth = document.getElementById("switch-both");
@@ -28,6 +29,7 @@ export {
    LAST_Y,
    scrollContainer,
    scrollThumb,
+   scrollThumbX,
    switchDoc,
    switchBoth,
    switchCanvas,

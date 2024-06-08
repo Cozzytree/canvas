@@ -29,7 +29,7 @@ export class Arrows extends Shapes {
    //       const mouseY =
    //          e.clientY -
    //          canvas.getBoundingClientRect().top +
-   //          scrollBar.scrollPosition;
+   //          scrollBar.scrollPositionY;
 
    //       const withinBounds = (x1, y1, x2, y2, tolerance = 0) => {
    //          return (
@@ -128,7 +128,7 @@ export class Arrows extends Shapes {
    //       const mouseY =
    //          e.clientY -
    //          canvas.getBoundingClientRect().top +
-   //          scrollBar.scrollPosition;
+   //          scrollBar.scrollPositionY;
 
    //       arrows.forEach((arrow) => {
    //          if (arrow.isResizingEnd) {
