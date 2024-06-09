@@ -6,11 +6,13 @@ import {
   pencilMap,
   lineMap,
 } from "./main";
-import { canvas, context, line } from "./selectors";
+import { canvas, context, line, optionsContainer } from "./selectors";
 import { Scale, config, scrollBar } from "./config";
 
 export default class Shapes {
   constructor() {
+    this.fillStyle = "rgba(0,0,0,0)";
+    this.borderColor = "white";
     this.tolerance = 6;
     this.lineWidth = 1.7;
     this.isDragging = false;
@@ -21,6 +23,7 @@ export default class Shapes {
 
     canvas.addEventListener("click", (e) => {
       if (config.mode === "pencil") return;
+      config.currentActive = null;
 
       const { x: clickX, y: clickY } = this.getTransformedMouseCoords(e);
 
@@ -35,10 +38,6 @@ export default class Shapes {
       allShapes.forEach((shape) => {
         shape.isActive = false;
       });
-      // rectMap.forEach((rect) => (rect.isActive = false));
-      // circleMap.forEach((circle) => (circle.isActive = false));
-      // textMap.forEach((text) => (text.isActive = false));
-      // arrows.forEach((arrow) => (arrow.isActive = false));
 
       let circle = null;
       let square = null;
@@ -138,6 +137,7 @@ export default class Shapes {
         (!square || circle.xRadius * 2 < square.width) &&
         (!text || circle.xRadius * 2 < text.width)
       ) {
+        config.currentActive = circle;
         circle.isActive = true;
       } else if (
         square &&
@@ -145,24 +145,30 @@ export default class Shapes {
         (!text || square.width < text.width) &&
         (!minLine || square.width < Math.abs(minLine.tox - minLine.x))
       ) {
+        config.currentActive = square;
         square.isActive = true;
       } else if (
         text &&
         (!circle || text.width < circle.xRadius * 2) &&
         (!square || text.width < square.width)
       ) {
+        config.currentActive = text;
         text.isActive = true;
       } else if (
         arrow &&
         (!square || Math.abs(arrow.tox - arrow.x) < square.width)
       ) {
+        config.currentActive = arrow;
         arrow.isActive = true;
       } else if (
         minLine &&
         (!square || Math.abs(minLine.tox - minLine.x) < square.width)
       ) {
+        config.currentActive = minLine;
         minLine.isActive = true;
       }
+      if (config.currentActive) optionsContainer.classList.remove("hidden");
+      else optionsContainer.classList.add("hidden");
 
       this.draw();
     });
@@ -308,13 +314,15 @@ export default class Shapes {
         context.stroke();
       }
       context.beginPath();
-      context.strokeStyle = "white";
+      context.strokeStyle = rect.borderColor;
+      context.fillStyle = rect.fillStyle;
       context.moveTo(x + radius, y);
       context.arcTo(x + width, y, x + width, y + height, radius);
       context.arcTo(x + width, y + height, x, y + height, radius);
       context.arcTo(x, y + height, x, y, radius);
       context.arcTo(x, y, x + width, y, radius);
       context.closePath();
+      context.fill();
       context.stroke();
     });
 
@@ -350,7 +358,8 @@ export default class Shapes {
         context.restore(); // Restore the previous drawing state
       }
       context.beginPath();
-      context.strokeStyle = "white";
+      context.fillStyle = sphere.fillStyle;
+      context.strokeStyle = sphere.borderColor;
       context.ellipse(
         sphere.x,
         sphere.y,
@@ -360,6 +369,7 @@ export default class Shapes {
         0,
         2 * Math.PI
       );
+      context.fill();
       context.closePath();
       context.stroke();
     });
@@ -571,7 +581,7 @@ export default class Shapes {
     const mouseX =
       (event.clientX - rect.left - scrollBar.scrollPositionX) / Scale.scale;
     const mouseY =
-      (event.clientY - rect.top + scrollBar.scrollPositionY) / Scale.scale;
+      (event.clientY - rect.top - scrollBar.scrollPositionY) / Scale.scale;
     return { x: mouseX, y: mouseY };
   }
 

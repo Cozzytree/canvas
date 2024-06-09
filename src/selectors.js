@@ -13,28 +13,34 @@ const docuemntDiv = document.getElementById("document");
 const canvasDiv = document.getElementById("canvas-div");
 const line = document.getElementById("line");
 const zoomText = document.getElementById("zoomText");
+const shapeOptions = document.getElementById("shape-options");
+const insertOptions = document.getElementById("insert-options");
+const optionsContainer = document.getElementById("options-container");
 
 let IS_PENCIL_DRAWING = false;
 let LAST_X = 0;
 let LAST_Y = 0;
 
 export {
-   canvas,
-   pencil,
-   context,
-   lineArrow,
-   setText,
-   IS_PENCIL_DRAWING,
-   LAST_X,
-   LAST_Y,
-   scrollContainer,
-   scrollThumb,
-   scrollThumbX,
-   switchDoc,
-   switchBoth,
-   switchCanvas,
-   docuemntDiv,
-   canvasDiv,
-   line,
-   zoomText,
+  canvas,
+  pencil,
+  context,
+  lineArrow,
+  setText,
+  IS_PENCIL_DRAWING,
+  LAST_X,
+  LAST_Y,
+  scrollContainer,
+  scrollThumb,
+  scrollThumbX,
+  switchDoc,
+  switchBoth,
+  switchCanvas,
+  docuemntDiv,
+  canvasDiv,
+  line,
+  zoomText,
+  shapeOptions,
+  insertOptions,
+  optionsContainer,
 };

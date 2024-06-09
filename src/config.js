@@ -1,6 +1,8 @@
 export const config = {
   mode: "free",
   docMode: "both",
+  // for shape options
+  currentActive: null,
 };
 
 export const scrollBar = {

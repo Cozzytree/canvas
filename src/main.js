@@ -1,9 +1,10 @@
 import { changeStyle } from "./events.js";
 import { shape } from "./shape.js";
-import { config, scrollBar } from "./config.js";
+import { Scale, config, scrollBar } from "./config.js";
 import {
   canvas,
   scrollContainer,
+  canvasDiv,
   scrollThumb,
   scrollThumbX,
 } from "./selectors.js";
@@ -16,7 +17,7 @@ const arrows = new Map();
 const lineMap = new Map();
 
 const visibleHeight = scrollContainer.clientHeight;
-const visibleWidth = scrollContainer.clientWidth;
+const visibleWidth = canvasDiv.clientWidth;
 const contentHeight = 1800; // Simulate a taller content
 const contentWidth = 2800;
 canvas.width = contentWidth;
@@ -32,7 +33,6 @@ const scrollThumbWidth = Math.max(
 );
 scrollThumb.style.height = `${scrollThumbHeight}px`;
 scrollThumbX.style.width = `${scrollThumbWidth}px`;
-console.log(scrollThumbWidth);
 
 function onScroll(y) {
   const maxScrollTop = visibleHeight - scrollThumbHeight;
