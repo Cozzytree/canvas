@@ -7,11 +7,14 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./components/dropDownMenu";
+import { LocalContextProvider } from "./localcontext";
 
 function Root() {
   return (
     <div className="flex flex-col gap-1">
-      <Options />
+      <LocalContextProvider>
+        <Options />
+      </LocalContextProvider>
     </div>
   );
 }
