@@ -11,6 +11,7 @@ export class Text extends Shapes {
     //   this.content = content;
     this.content = content;
     this.pointTo = [];
+    this.type = "text";
 
     //   canvas.addEventListener("mousedown", this.mouseDown.bind(this));
     //   canvas.addEventListener("mousemove", this.mouseMove.bind(this));

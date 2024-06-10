@@ -1,6 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import Options from "./components/Options";
+import { config } from "../config";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "./components/dropDownMenu";
 
 function Root() {
   return (

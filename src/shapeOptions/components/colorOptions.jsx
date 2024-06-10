@@ -10,7 +10,7 @@ const colors = [
   "#33FFF5",
 ];
 
-function ColorOptions({ isColor, setbgColor, setColor }) {
+function ColorOptions({ setbgColor }) {
   function handleColor(color) {
     if (config && config.currentActive) {
       config.currentActive.fillStyle = color;
@@ -20,18 +20,19 @@ function ColorOptions({ isColor, setbgColor, setColor }) {
 
   return (
     <>
-      {isColor && (
-        <div className="grid grid-cols-4 w-full gap-[5px] p-[4px] border-[2px] border-zinc-700 rounded-[2px]">
+      <div className="flex flex-col divide-y w-[167px]">
+        <div>Circle</div>
+        <div className="grid grid-cols-4 gap-[5px]">
           {colors.map((color, i) => (
             <div
               key={i}
               onClick={() => handleColor(color)}
-              className="h-[20px] cursor-pointer"
+              className={`h-[20px] cursor-pointer`}
               style={{ background: color }}
             ></div>
           ))}
         </div>
-      )}
+      </div>
     </>
   );
 }

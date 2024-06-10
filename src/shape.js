@@ -314,6 +314,7 @@ export default class Shapes {
         context.stroke();
       }
       context.beginPath();
+      context.lineWidth = rect.lineWidth;
       context.strokeStyle = rect.borderColor;
       context.fillStyle = rect.fillStyle;
       context.moveTo(x + radius, y);
@@ -358,6 +359,7 @@ export default class Shapes {
         context.restore(); // Restore the previous drawing state
       }
       context.beginPath();
+      context.lineWidth = sphere.lineWidth;
       context.fillStyle = sphere.fillStyle;
       context.strokeStyle = sphere.borderColor;
       context.ellipse(
@@ -482,11 +484,12 @@ export default class Shapes {
           { x: arrow.x, y: arrow.y },
           { x: arrow.tox, y: arrow.toy }
         );
-      } else {
-        context.strokeStyle = "white";
       }
 
+      context.beginPath();
       context.moveTo(arrow.x, arrow.y);
+      context.strokeStyle = arrow.borderColor;
+      context.lineWidth = arrow.lineWidth;
 
       if (Math.abs(arrow.x - arrow.tox) >= 100) {
         // Calculate the perpendicular point
@@ -517,7 +520,6 @@ export default class Shapes {
       }
       // Draw the arrowhead
       context.lineTo(arrow.tox, arrow.toy);
-      context.lineWidth = 1.5;
       context.stroke();
 
       if (Math.max(arrow.x, arrow.tox) - Math.min(arrow.x, arrow.tox) <= 20) {

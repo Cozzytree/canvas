@@ -15,6 +15,7 @@ const pencilMap = new Map();
 const textMap = new Map();
 const arrows = new Map();
 const lineMap = new Map();
+const breakpoints = new Map();
 
 const visibleHeight = scrollContainer.clientHeight;
 const visibleWidth = canvasDiv.clientWidth;

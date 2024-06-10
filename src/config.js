@@ -5,6 +5,15 @@ export const config = {
   currentActive: null,
 };
 
+export const colors = [
+  "#FF5733",
+  "#33FF57",
+  "#3357FF",
+  "#FF33A1",
+  "#A133FF",
+  "#33FFF5",
+];
+
 export const scrollBar = {
   scrollPositionY: 0,
   scrollPositionX: 0,
