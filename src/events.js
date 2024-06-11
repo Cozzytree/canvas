@@ -1,4 +1,5 @@
 import Rectangle from "./rect.js";
+import Line from "./line.js";
 import {
   rectMap,
   circleMap,
@@ -21,11 +22,11 @@ import {
   canvasDiv,
   line,
   zoomText,
+  text,
 } from "./selectors";
 import { Circle } from "./sphere.js";
 import { Text } from "./text.js";
 import { Arrows } from "./arrow.js";
-import Line from "./line.js";
 import { shape } from "./shape.js";
 
 const newRect = document.getElementById("newRect");
@@ -144,72 +145,165 @@ lineArrow.addEventListener("click", () => {
   });
 });
 
-// new line
+// draw Line
+
+// function drawLine(line, tempPoint) {
+//   context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before re-drawing
+//   context.beginPath();
+//   context.strokeStyle = "white";
+//   context.lineWidth = 1;
+//   context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
+//   for (let i = 1; i < line.curvePoints.length; i++) {
+//     context.lineTo(line.curvePoints[i].x, line.curvePoints[i].y);
+//   }
+//   if (tempPoint) {
+//     context.lineTo(tempPoint.x, tempPoint.y);
+//   }
+//   context.stroke();
+//   context.closePath();
+// }
+
+function drawCurve(line, tempPoint) {
+  context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before re-drawing
+  context.beginPath();
+  context.strokeStyle = "white";
+  context.lineWidth = 1;
+
+  // Start the path at the first point
+  context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
+
+  for (let i = 1; i < line.curvePoints.length - 1; i++) {
+    const cp1 = line.curvePoints[i];
+    const cp2 = line.curvePoints[i + 1];
+
+    // Calculate the midpoint between cp1 and cp2 for the end point
+    const midPointX = (cp1.x + cp2.x) / 2;
+    const midPointY = (cp1.y + cp2.y) / 2;
+
+    // Use cp1 as the control point and the midpoint as the end point
+    context.quadraticCurveTo(cp1.x, cp1.y, midPointX, midPointY);
+  }
+
+  // Handle the last segment, if tempPoint is provided
+  if (tempPoint) {
+    const lastCp = line.curvePoints[line.curvePoints.length - 1];
+    context.quadraticCurveTo(lastCp.x, lastCp.y, tempPoint.x, tempPoint.y);
+  } else {
+    // Draw the last segment to the last point in curvePoints
+    const cp1 = line.curvePoints[line.curvePoints.length - 2];
+    const cp2 = line.curvePoints[line.curvePoints.length - 1];
+    context.quadraticCurveTo(cp1.x, cp1.y, cp2.x, cp2.y);
+  }
+
+  context.stroke();
+  context.closePath();
+}
+
 line.addEventListener("click", () => {
+  //   document.body.style.cursor = "url('/cursor-move.svg') 0 0, auto";
+
   document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
   config.mode = "line";
   changeStyle();
-  const line = document.createElement("div");
-  line.classList.add("rectShape");
-  line.style.width = "150px";
-  line.style.height = "2px";
-  line.style.position = "absolute";
 
-  document.addEventListener("mousemove", (e) => {
-    // console.log(config.mode);
-    if (config.mode !== "line") return;
-    line.style.top = e.clientY + "px";
-    line.style.left = e.clientX + "px";
-    document.body.append(line);
-  });
+  let line = null;
+  let isDrawing = false;
+  let tempPoint = null;
 
-  canvas.addEventListener("click", (e) => {
-    if (config.mode !== "line") return;
-    line.remove();
-    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-    const mouseY =
-      e.clientY -
-      canvas.getBoundingClientRect().top +
-      scrollBar.scrollPositionY;
-    const newLine = new Line(mouseX, mouseY, mouseX + 140, mouseY);
-    lineMap.set(Math.random() * 10, newLine);
+  const onMouseMove = (e) => {
+    if (line && isDrawing) {
+      const { x, y } = shape.getTransformedMouseCoords(e);
+      tempPoint = { x: x, y: y };
+      drawCurve(line, tempPoint);
+    }
+  };
 
+  const onCanvasClick = (e) => {
+    const { x, y } = shape.getTransformedMouseCoords(e);
+    if (!line && !isDrawing) {
+      line = new Line(x, y);
+      line.curvePoints.push({ x: x, y: y });
+      isDrawing = true;
+      canvas.addEventListener("mousemove", onMouseMove);
+    } else {
+      line.curvePoints.push({ x: x, y: y });
+    }
+    tempPoint = null; // Reset the temp point after adding the click point to the array
+  };
+
+  const onCanvasDblClick = (e) => {
+    isDrawing = false;
+    canvas.removeEventListener("mousemove", onMouseMove);
+    canvas.removeEventListener("click", onCanvasClick);
+    canvas.removeEventListener("dblclick", onCanvasDblClick);
+    lineMap.set(Math.random() * 10, line);
+    shape.draw();
     config.mode = "free";
     changeStyle();
-    newLine.isActive = true;
-    newLine.drawLine(newLine.x, newLine.y, newLine.tox, newLine.toy);
-  });
+  };
+
+  canvas.addEventListener("click", onCanvasClick);
+  canvas.addEventListener("dblclick", onCanvasDblClick);
+  //   const line = document.createElement("div");
+  //   line.classList.add("rectShape");
+  //   line.style.width = "150px";
+  //   line.style.height = "2px";
+  //   line.style.position = "absolute";
+  //   document.addEventListener("mousemove", (e) => {
+  //     // console.log(config.mode);
+  //     if (config.mode !== "line") return;
+  //     line.style.top = e.clientY + "px";
+  //     line.style.left = e.clientX + "px";
+  //     document.body.append(line);
+  //   });
+  //   canvas.addEventListener("click", (e) => {
+  //     if (config.mode !== "line") return;
+  //     line.remove();
+  //     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+  //     const mouseY =
+  //       e.clientY -
+  //       canvas.getBoundingClientRect().top +
+  //       scrollBar.scrollPositionY;
+  //     const newLine = new Line(mouseX, mouseY, mouseX + 140, mouseY);
+  //     lineMap.set(Math.random() * 10, newLine);
+  //     config.mode = "free";
+  //     changeStyle();
+  //     newLine.isActive = true;
+  //     newLine.drawLine(newLine.x, newLine.y, newLine.tox, newLine.toy);
+  //   });
 });
 
 canvas.addEventListener("dblclick", function (event) {
   // Handle double click event
   if (event.target.tagName === "TEXTAREA") return;
 
-  const html = `<textarea class="w-[10ch] absolute px-[3px] text-[14px] outline-none bg-transparent focus:border-[1px] border-zinc-400/50 z-[999] h-fit shadow-sm" id="input"></textarea>`;
-  document.body.insertAdjacentHTML("afterbegin", html);
-  const input = document.getElementById("input");
-  input.style.left = event.clientX + "px";
-  input.style.top = event.clientY + "px";
-  input.style.fontSize = "18px";
-  input.focus();
+  if (config.mode === "free" || config.mode === "text") {
+    const html = `<textarea class="w-[10ch] absolute px-[3px] text-[14px] outline-none bg-transparent focus:border-[1px] border-zinc-400/50 z-[999] h-fit shadow-sm" id="input"></textarea>`;
+    document.body.insertAdjacentHTML("afterbegin", html);
+    const input = document.getElementById("input");
+    input.style.left = event.clientX + "px";
+    input.style.top = event.clientY + "px";
+    input.style.fontSize = "18px";
+    input.focus();
 
-  input.addEventListener("change", (e) => {
-    const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-    const mouseY =
-      event.clientY -
-      canvas.getBoundingClientRect().top +
-      scrollBar.scrollPositionY;
-    const content = e.target.value.split("\n");
-    const newText = new Text(mouseX, mouseY, 15, content);
-    textMap.set(Math.random() * 100, newText);
-    console.log(newText);
-    newText.draw();
-    input.remove();
-  });
+    input.addEventListener("change", (e) => {
+      const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+      const mouseY =
+        event.clientY -
+        canvas.getBoundingClientRect().top +
+        scrollBar.scrollPositionY;
+      const content = e.target.value.split("\n");
+      const newText = new Text(mouseX, mouseY, 15, content);
+      textMap.set(Math.random() * 100, newText);
+      console.log(newText);
+      newText.draw();
+      input.remove();
+    });
 
-  input.addEventListener("blur", (e) => {
-    input.remove();
-  });
+    input.addEventListener("blur", (e) => {
+      input.remove();
+    });
+  }
 });
 
 window.addEventListener(
@@ -277,17 +371,16 @@ function startDrawing(e) {
 
 function draw(e) {
   if (!isDrawing || config.mode !== "pencil") return;
-  const x = e.clientX - canvas.offsetLeft;
-  const y = e.clientY - canvas.offsetTop;
-
+  const { x, y } = shape.getTransformedMouseCoords(e);
+  context.lineWidth = 1.6;
+  context.strokeStyle = "white";
   context.beginPath();
   context.moveTo(lastX, lastY);
   context.lineTo(x, y);
   context.lineCap = "round";
   context.lineJoin = "round";
-  context.lineWidth = 1.6;
-  context.strokeStyle = "#dcdcdc";
   context.stroke();
+  context.closePath();
 
   [lastX, lastY] = [x, y];
 
@@ -310,6 +403,7 @@ export function changeStyle() {
     free: freeMode,
     arrowLine: lineArrow,
     line,
+    text,
   };
 
   // Reset all backgrounds to transparent

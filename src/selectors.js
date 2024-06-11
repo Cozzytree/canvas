@@ -16,6 +16,7 @@ const zoomText = document.getElementById("zoomText");
 const shapeOptions = document.getElementById("shape-options");
 const insertOptions = document.getElementById("insert-options");
 const optionsContainer = document.getElementById("options-container");
+const text = document.getElementById("Text");
 
 let IS_PENCIL_DRAWING = false;
 let LAST_X = 0;
@@ -43,4 +44,5 @@ export {
   shapeOptions,
   insertOptions,
   optionsContainer,
+  text
 };

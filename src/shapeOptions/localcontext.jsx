@@ -14,9 +14,9 @@ function LocalContextProvider({ children }) {
         setCurrentActive(config.currentActive);
       }
     }
-    canvas.addEventListener("click", checkCurrentActive);
+    document.addEventListener("click", checkCurrentActive);
     return () => {
-      canvas.removeEventListener("click", checkCurrentActive);
+      document.removeEventListener("click", checkCurrentActive);
     };
   }, [currentActive]);
 

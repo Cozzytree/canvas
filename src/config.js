@@ -5,6 +5,12 @@ export const config = {
   currentActive: null,
 };
 
+export const fontsizes = [
+  { size: "Small", q: 15 },
+  { size: "Medium", q: 25 },
+  { size: "Large", q: 35},
+  { size: "Extra Large", q: 45 },
+];
 export const colors = [
   "#FF5733",
   "#33FF57",

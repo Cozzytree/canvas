@@ -7,6 +7,10 @@
    box-sizing: border-box;
 }
 
+body {
+    /* cursor: crosshair; */
+}
+
 @layer base {
    :root {
       --background: 0 0% 0%;

@@ -7,6 +7,7 @@ import {
   canvasDiv,
   scrollThumb,
   scrollThumbX,
+  context,
 } from "./selectors.js";
 
 const circleMap = new Map();
@@ -68,12 +69,13 @@ document.addEventListener("mousemove", (e) => {
   if (scrollBar.isDraggingY) {
     const y = e.clientY - scrollBar.startY;
     onScroll(y);
+    shape.draw();
   }
   if (scrollBar.isDraggingX) {
     const x = e.clientX - scrollBar.startX;
     onScrollX(x);
+    shape.draw();
   }
-  shape.draw();
 });
 
 document.addEventListener("mouseup", () => {

@@ -12,6 +12,7 @@ export class Text extends Shapes {
     this.content = content;
     this.pointTo = [];
     this.type = "text";
+    this.fillStyle = "white"
 
     //   canvas.addEventListener("mousedown", this.mouseDown.bind(this));
     //   canvas.addEventListener("mousemove", this.mouseMove.bind(this));
