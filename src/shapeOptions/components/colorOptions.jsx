@@ -1,5 +1,6 @@
 import React from "react";
 import { config } from "../../config";
+import { shape } from "../../shape";
 
 const colors = [
   "#FF5733",
@@ -15,6 +16,7 @@ function ColorOptions({ setbgColor }) {
     if (config && config.currentActive) {
       config.currentActive.fillStyle = color;
       setbgColor(color);
+      shape.draw();
     }
   }
 

@@ -6,7 +6,7 @@ import {
   pencilMap,
   lineMap,
 } from "./main";
-import { canvas, context, line, optionsContainer } from "./selectors";
+import { canvas, context, optionsContainer } from "./selectors";
 import { Scale, config, scrollBar } from "./config";
 
 export default class Shapes {
@@ -15,11 +15,11 @@ export default class Shapes {
     this.borderColor = "white";
     this.tolerance = 6;
     this.lineWidth = 1.7;
-    this.isDragging = false;
+    // this.isDragging = false;
     this.isActive = false;
-    this.isResizing = false;
-    this.horizontelResizing = false;
-    this.verticalResizing = false;
+    // this.isResizing = false;
+    // this.horizontelResizing = false;
+    // this.verticalResizing = false;
     this.isDraggingOrResizing = false;
     this.resizeElement = null;
     this.dragElement = null;
@@ -1148,6 +1148,7 @@ export default class Shapes {
         });
 
         // get all the arrows connected to rect
+
         arc.forEach((a) => {
           let start = rectMap.get(a.startTo);
           let end = rectMap.get(a.endTo);
@@ -1279,7 +1280,8 @@ export default class Shapes {
         }
       }
       this.draw();
-    } else if (arc) {
+    }
+    if (arc) {
       arc.isActive = true;
       arc.x = mouseX - arc.offsetX;
       arc.y = mouseY - arc.offsetY;
@@ -1416,7 +1418,8 @@ export default class Shapes {
         }
       }
       this.draw();
-    } else if (arrow) {
+    }
+    if (arrow) {
       const deltaX = mouseX - arrow.offsetX;
       const deltaY = mouseY - arrow.offsetY;
       const diffX = arrow.tox - arrow.x;
@@ -1427,7 +1430,8 @@ export default class Shapes {
       arrow.tox = deltaX + diffX;
       arrow.toy = deltaY + diffY;
       this.draw();
-    } else if (text) {
+    }
+    if (text) {
       text.x = mouseX - text.offsetX;
       text.y = mouseY - text.offsetY;
       if (text.pointTo.length > 0) {
@@ -1514,12 +1518,12 @@ export default class Shapes {
     if (config.mode === "pencil") return;
 
     canvas.removeEventListener("mousemove", this.mouseMove.bind(this));
-    const { x: mouseX, y: mouseY } = this.getTransformedMouseCoords(e);
+    // const { x: mouseX, y: mouseY } = this.getTransformedMouseCoords(e);
 
     const arrow = arrows.get(this.resizeElement?.key);
     const rect = rectMap.get(this.resizeElement?.key);
 
-    if (arrow && this.resizeElement.key) {
+    if (arrow) {
       if (this.resizeElement?.direction === "resizeEnd") {
         if (arrow.endTo) {
           const {
@@ -1625,7 +1629,7 @@ export default class Shapes {
             t.pointTo.push(this.resizeElement?.key);
           }
         });
-      } else {
+      } else if (this.resizeElement?.direction === "resizeStart") {
         if (arrow.startTo) {
           const {
             rect: theRect,
@@ -1651,8 +1655,7 @@ export default class Shapes {
               (arrow.x - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
             );
             if (parameter > theArc.xRadius && parameter > theArc.yRadius) {
-              arrow.endTo = null;
-              // theRect.pointTo = null;
+              arrow.startTo = null;
               theArc.pointTo.filter((p) => p !== this.resizeElement?.key);
             }
           }
@@ -1664,7 +1667,7 @@ export default class Shapes {
               arrow.toy < theText.y ||
               arrow.toy > theText.y + theText.height
             ) {
-              arrow.pointTo = null;
+              arrow.startTo = null;
               theText.pointTo.filter((t) => t !== this.resizeElement?.key);
             }
           }
@@ -1677,6 +1680,7 @@ export default class Shapes {
             arrow.y >= rect.y - this.tolerance &&
             arrow.y <= rect.y + rect.height + this.tolerance
           ) {
+            if (arrow.endTo === rectKey) return;
             rect.pointTo.push(this.resizeElement?.key);
             arrow.startTo = rectKey;
           }
@@ -1686,6 +1690,7 @@ export default class Shapes {
             (arrow.x - arc.x) ** 2 + (arrow.y - arc.y) ** 2
           );
           if (parameter < arc.xRadius && parameter < arc.yRadius) {
+            if (arrow.endTo === arcKey) return;
             arrow.startTo = arcKey;
             arc.pointTo.push(this.resizeElement?.key);
           }
@@ -1697,12 +1702,14 @@ export default class Shapes {
             arrow.y >= text.y - this.tolerance &&
             arrow.y <= text.y + text.height + this.tolerance
           ) {
+            if (arrow.endTo === textKey) return;
             text.pointTo.push(this.resizeElement?.key);
             arrow.startTo = textKey;
           }
         });
       }
-    } else if (rect) {
+    }
+    if (rect) {
       rect.isActive = true;
       this.draw();
     }

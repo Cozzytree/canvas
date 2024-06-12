@@ -9,7 +9,7 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "./menuBar";
-import { useLocalContext } from "../localcontext";
+import { useLocalContext } from "../context/localcontext";
 
 function Options() {
   const { currentActive, setCurrentActive } = useLocalContext();

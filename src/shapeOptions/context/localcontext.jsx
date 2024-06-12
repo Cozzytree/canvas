@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, createContext } from "react";
-import { config } from "../config";
+import { config } from "../../config";
 
 const LocalContext = createContext();
 

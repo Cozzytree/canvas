@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { config, colors } from "../../config";
 import { MenubarSub, MenubarSubContent, MenubarSubTrigger } from "./menuBar";
+import { shape } from "../../shape";
 
 const thickness = [
   { size: "S", q: 1 },
@@ -16,6 +17,7 @@ function ThicknessOptions() {
   function handleThickness(num) {
     if (config.currentActive) {
       config.currentActive.lineWidth = num;
+      shape.draw();
     }
   }
   return (
@@ -36,6 +38,7 @@ function ThicknessOptions() {
                   onClick={() => {
                     setBorderColor(a);
                     config.currentActive.borderColor = a;
+                    shape.draw();
                   }}
                   key={i}
                   style={{ background: a }}

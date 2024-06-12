@@ -7,7 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./components/dropDownMenu";
-import { LocalContextProvider } from "./localcontext";
+import { LocalContextProvider } from "./context/localcontext";
 
 function Root() {
   return (
