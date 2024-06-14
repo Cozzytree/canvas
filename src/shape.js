@@ -602,24 +602,23 @@ export default class Shapes {
                line.curvePoints[line.curvePoints.length - 1].y
             );
          } else {
-            if (line.curvePoints.length < 2) {
-               // Not enough points to draw a curve
-               return;
-            }
-
             // Start the path at the first point
-            for (let i = 1; i < line.curvePoints.length - 1; i++) {
-               const cp1 = line.curvePoints[i];
-               const cp2 = line.curvePoints[i + 1];
+            if (line.curvePoints.length <= 2) {
+               context.lineTo(line.curvePoints[1].x, line.curvePoints[1].y);
+            } else {
+               for (let i = 1; i < line.curvePoints.length - 1; i++) {
+                  const cp1 = line.curvePoints[i];
+                  const cp2 = line.curvePoints[i + 1];
 
-               //   context.arcTo(cp1.x, cp1.y, cp2.x, cp2.y, 50);
-               // Calculate the weighted midpoint (e.g., 75% closer to cp2)
-               const t = 0.8; // Weighting factor, 0.5 for halfway, closer to 1 for closer to cp2
-               const midPointX = (1 - t) * cp1.x + t * cp2.x;
-               const midPointY = (1 - t) * cp1.y + t * cp2.y;
+                  //   context.arcTo(cp1.x, cp1.y, cp2.x, cp2.y, 50);
+                  // Calculate the weighted midpoint (e.g., 75% closer to cp2)
+                  const t = 0.8; // Weighting factor, 0.5 for halfway, closer to 1 for closer to cp2
+                  const midPointX = (1 - t) * cp1.x + t * cp2.x;
+                  const midPointY = (1 - t) * cp1.y + t * cp2.y;
 
-               // Use cp1 as the control point and the adjusted midpoint as the end point
-               context.quadraticCurveTo(cp1.x, cp1.y, midPointX, midPointY);
+                  // Use cp1 as the control point and the adjusted midpoint as the end point
+                  context.quadraticCurveTo(cp1.x, cp1.y, midPointX, midPointY);
+               }
             }
          }
          context.stroke();
@@ -761,7 +760,6 @@ export default class Shapes {
             )
          ) {
             arrow.isActive = true;
-            arrow.isResizingEnd = true;
             this.resizeElement = {
                direction: "resizeEnd",
                key,
@@ -771,7 +769,6 @@ export default class Shapes {
             withinBounds(arrow.x, arrow.y, arrow.x, arrow.y, this.tolerance)
          ) {
             arrow.isActive = true;
-            arrow.isResizingStart = true;
             this.resizeElement = {
                direction: "resizeStart",
                key,
@@ -852,23 +849,35 @@ export default class Shapes {
 
       if (isResizing) return;
 
-      lineMap.forEach((line) => {
-         if (
-            mouseX >= line.x - this.tolerance &&
-            mouseX <= line.x + this.tolerance &&
-            mouseY >= line.y - this.tolerance &&
-            mouseY <= line.y + this.tolerance
-         ) {
-            isResizing = true;
-            line.isResizingStart = true;
-         } else if (
-            mouseX >= line.tox - this.tolerance &&
-            mouseX <= line.tox + this.tolerance &&
-            mouseY >= line.toy - this.tolerance &&
-            mouseY <= line.toy + this.tolerance
-         ) {
-            isResizing = true;
-            line.isResizingEnd = true;
+      lineMap.forEach((line, key) => {
+         let points = line.curvePoints;
+         for (let i = 0; i < points.length; i++) {
+            if (
+               mouseX >= points[i].x - 5 &&
+               mouseX <= points[i].x + 5 &&
+               mouseY >= points[i].y - 5 &&
+               mouseY <= points[i].y + 5 &&
+               line.isActive
+            ) {
+               line.isActive = true;
+               if (i == 0) {
+                  this.resizeElement = {
+                     key,
+                     direction: "resizeStart",
+                  };
+               } else if (i == points.length - 1) {
+                  this.resizeElement = {
+                     key,
+                     direction: "resizeEnd",
+                  };
+               } else {
+                  this.resizeElement = {
+                     key,
+                     direction: null,
+                     index: i,
+                  };
+               }
+            }
          }
       });
       if (isResizing) return;
@@ -1095,12 +1104,6 @@ export default class Shapes {
 
    mouseMove(e) {
       if (config.mode === "pencil") return;
-      breakPointsCtx.clearRect(
-         0,
-         0,
-         canvasBreakpoints.width,
-         canvasBreakpoints.height
-      );
 
       if (!this.resizeElement && !this.dragElement) return;
       const { x: mouseX, y: mouseY } = this.getTransformedMouseCoords(e);
@@ -1109,6 +1112,7 @@ export default class Shapes {
       let circleResize = circleMap.get(this.resizeElement?.key);
       let arrowResize = arrows.get(this.resizeElement?.key);
       let textResize = textMap.get(this.resizeElement?.key);
+      let lineResize = lineMap.get(this.resizeElement?.key);
 
       if (rectResize) {
          if (this.resizeElement.direction === "horizontel") {
@@ -1165,6 +1169,61 @@ export default class Shapes {
       } else if (textResize) {
          textResize.size = Math.max(10, mouseY - textResize.y); // Ensure minimum size
          this.draw();
+      } else if (lineResize) {
+         if (this.resizeElement.direction === null) {
+            lineResize.curvePoints[this.resizeElement.index].x = mouseX;
+            lineResize.curvePoints[this.resizeElement.index].y = mouseY;
+            if (mouseX > lineResize.maxX) {
+               lineResize.maxX = mouseX;
+            }
+            if (mouseX < lineResize.minX) {
+               lineResize.minX = mouseX;
+            }
+            if (mouseY > lineResize.maxY) {
+               lineResize.maxY = mouseY;
+            }
+            if (mouseY < lineResize.minY) {
+               lineResize.minY = mouseY;
+            }
+
+            this.draw();
+         } else if (this.resizeElement.direction === "resizeStart") {
+            lineResize.curvePoints[0].x = mouseX;
+            lineResize.curvePoints[0].y = mouseY;
+            if (mouseX > lineResize.maxX) {
+               lineResize.maxX = mouseX;
+            }
+            if (mouseX < lineResize.minX) {
+               lineResize.minX = mouseX;
+            }
+            if (mouseY > lineResize.maxY) {
+               lineResize.maxY = mouseY;
+            }
+            if (mouseY < lineResize.minY) {
+               lineResize.minY = mouseY;
+            }
+
+            this.draw();
+         } else {
+            lineResize.curvePoints[lineResize.curvePoints.length - 1].x =
+               mouseX;
+            lineResize.curvePoints[lineResize.curvePoints.length - 1].y =
+               mouseY;
+            if (mouseX > lineResize.maxX) {
+               lineResize.maxX = mouseX;
+            }
+            if (mouseX < lineResize.minX) {
+               lineResize.minX = mouseX;
+            }
+            if (mouseY > lineResize.maxY) {
+               lineResize.maxY = mouseY;
+            }
+            if (mouseY < lineResize.minY) {
+               lineResize.minY = mouseY;
+            }
+
+            this.draw();
+         }
       }
 
       if (rectResize || circleResize || arrowResize || textResize) return;
@@ -1179,30 +1238,7 @@ export default class Shapes {
          rect.x = mouseX - rect.offsetX;
          rect.y = mouseY - rect.offsetY;
 
-         breakpoints.forEach((value, key) => {
-            if (
-               Math.abs(value.minX - rect.x) <= 10 ||
-               (Math.abs(value.maxY - rect.x) <= 10 &&
-                  key !== this?.dragElement)
-            ) {
-               rect.x =
-                  Math.abs(value.minX - rect.x) <= 10 ? value.minX : value.maxX;
-
-               breakPointsCtx.save();
-               breakPointsCtx.translate(
-                  -scrollBar.scrollPositionX,
-                  -scrollBar.scrollPositionY
-               );
-               breakPointsCtx.beginPath();
-               breakPointsCtx.lineWidth = 2;
-               breakPointsCtx.strokeStyle = "red";
-               breakPointsCtx.moveTo(value.minX, rect.y);
-               breakPointsCtx.lineTo(value.minX, value.minY);
-               breakPointsCtx.stroke();
-               breakPointsCtx.closePath();
-               breakPointsCtx.restore();
-            }
-         });
+         this.showGuides(rect.x, rect.y, this.dragElement, rect);
 
          if (rect.pointTo.length > 0) {
             let arc = [];
@@ -1371,6 +1407,12 @@ export default class Shapes {
          arc.isActive = true;
          arc.x = mouseX - arc.offsetX;
          arc.y = mouseY - arc.offsetY;
+         this.showGuides(
+            arc.x - arc.xRadius,
+            arc.y - arc.yRadius,
+            this.dragElement,
+            arc
+         );
          if (arc.pointTo.length > 0) {
             let arrow = [];
             let line = [];
@@ -1935,14 +1977,111 @@ export default class Shapes {
       });
 
       const rectDrag = rectMap.get(this?.dragElement);
-      if (rectDrag) {
-         const adjust = breakpoints.get(this.dragElement);
-         adjust.minX = rectDrag.x;
-         adjust.minY = rectDrag.y;
-      }
+      const arcDrag = circleMap.get(this?.dragElement);
 
+      if (rectDrag) {
+         this.updateGuides(
+            this.dragElement,
+            rectDrag.x,
+            rectDrag.y,
+            rectDrag.x + rectDrag.width,
+            rectDrag.y + rectDrag.height
+         );
+      } else if (arcDrag) {
+         this.updateGuides(
+            this.dragElement,
+            arcDrag.x - arcDrag.xRadius,
+            arcDrag.y - arcDrag.yRadius,
+            arcDrag.x + arcDrag.xRadius,
+            arcDrag.y + arcDrag.yRadius
+         );
+      }
+      breakPointsCtx.clearRect(
+         0,
+         0,
+         canvasBreakpoints.width,
+         canvasBreakpoints.height
+      );
       this.resizeElement = null;
       this.dragElement = null;
+   }
+
+   showGuides(x, y, key, object) {
+      // Clear the entire canvas
+      breakPointsCtx.clearRect(
+         0,
+         0,
+         canvasBreakpoints.width,
+         canvasBreakpoints.height
+      );
+
+      breakPointsCtx.save();
+      breakPointsCtx.translate(
+         -scrollBar.scrollPositionX,
+         -scrollBar.scrollPositionY
+      );
+      breakPointsCtx.lineWidth = 1.2;
+      breakPointsCtx.strokeStyle = "red";
+
+      // Variable to track if a guide is drawn
+      let guideDrawn = false;
+      breakPointsCtx.beginPath();
+      breakpoints.forEach((point, pointKey) => {
+         if (key !== pointKey) {
+            if (Math.abs(point.minX - x) <= this.tolerance) {
+               object.x =
+                  object.type === "sphere"
+                     ? point.minX + object.xRadius
+                     : point.minX;
+
+               breakPointsCtx.moveTo(point.minX, y);
+               breakPointsCtx.lineTo(point.minX, point.minY);
+               guideDrawn = true;
+            } else if (Math.abs(point.maxX - x) <= this.tolerance) {
+               object.x =
+                  object.type === "sphere"
+                     ? point.maxX + object.xRadius
+                     : point.maxX;
+
+               breakPointsCtx.moveTo(point.maxX, y);
+               breakPointsCtx.lineTo(point.maxX, point.minY);
+               guideDrawn = true;
+            } else if (Math.abs(point.minY - y) <= this.tolerance) {
+               object.y =
+                  object.type === "sphere"
+                     ? point.minY + object.yRadius
+                     : point.minY;
+
+               breakPointsCtx.moveTo(point.minX, point.minY);
+               breakPointsCtx.lineTo(x, point.minY);
+               guideDrawn = true;
+            } else if (Math.abs(point.maxY - y) <= this.tolerance) {
+               object.y =
+                  object.type === "sphere"
+                     ? point.maxY + object.yRadius
+                     : point.maxY;
+               breakPointsCtx.moveTo(point.minX, point.maxY);
+               breakPointsCtx.lineTo(x, point.maxY);
+               guideDrawn = true;
+            }
+         }
+      });
+
+      // Only stroke if a guide was drawn
+      if (guideDrawn) {
+         breakPointsCtx.stroke();
+      }
+
+      breakPointsCtx.closePath();
+      breakPointsCtx.restore();
+   }
+
+   updateGuides(key, x, y, width, height) {
+      const adjust = breakpoints.get(key);
+      adjust.minX = x;
+      adjust.minY = y;
+      adjust.maxX = width;
+      adjust.maxY = height;
    }
 
    getShape(key) {

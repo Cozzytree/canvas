@@ -66,7 +66,6 @@ newRect.addEventListener("click", (e) => {
             maxX: temp.x + temp.width,
             minY: temp.y,
             maxY: temp.y + temp.height,
-            mid: temp.x + temp.width - temp.x * 0.5,
          });
          temp.draw();
          //  temp.drawRect(temp); // Draw the new rectangle
@@ -102,7 +101,18 @@ newCircle.addEventListener("click", (e) => {
 
       if (config.mode === "circle") {
          const temp = new Circle(x + 50, y + 50);
-         circleMap.set(Math.random() * 10, temp);
+         const key = Math.random() * 10;
+         circleMap.set(key, temp);
+
+         // set guides
+         breakpoints.set(key, {
+            minX: temp.x - temp.xRadius,
+            maxX: temp.x + temp.xRadius,
+            minY: temp.y - temp.yRadius,
+            maxY: temp.y + temp.yRadius,
+            mid: temp.x,
+         });
+
          temp.drawSphere(temp); // Draw the new rectangle
          config.mode = "free";
          changeStyle();
@@ -177,11 +187,6 @@ function drawCurve(line, tempPoint) {
    context.beginPath();
    context.strokeStyle = "white";
    context.lineWidth = 1;
-
-   if (line.curvePoints.length < 2) {
-      // Not enough points to draw a curve
-      return;
-   }
 
    // Start the path at the first point
    context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
@@ -267,7 +272,7 @@ line.addEventListener("click", () => {
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("click", onCanvasClick);
       canvas.removeEventListener("dblclick", onCanvasDblClick);
-      line.curvePoints.pop();
+      //   line.curvePoints.pop();
       line.minX = minX;
       line.maxX = maxX;
       line.minY = minY;
@@ -332,8 +337,8 @@ canvas.addEventListener("dblclick", function (event) {
             scrollBar.scrollPositionY;
          const content = e.target.value.split("\n");
          const newText = new Text(mouseX, mouseY, 15, content);
-         textMap.set(Math.random() * 100, newText);
-         console.log(newText);
+         const key = Math.random() * 100;
+         textMap.set(key, newText);
          newText.draw();
          input.remove();
       });
