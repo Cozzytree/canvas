@@ -487,96 +487,92 @@ export default class Shapes {
       });
 
       //variables to be used when creating the arrow
-      let headlen = 6;
-      arrows.forEach((arrow) => {
-         if (arrow.isActive) {
-            context.strokeStyle = "rgb(2, 211, 134)";
-            context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
+      //   let headlen = 6;
+      //   arrows.forEach((arrow) => {
+      //      if (arrow.isActive) {
+      //         context.strokeStyle = "rgb(2, 211, 134)";
+      //         context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
 
-            this.fourDots(
-               { x: arrow.x, y: arrow.y },
-               { x: arrow.tox, y: arrow.toy }
-            );
-         }
+      //         this.fourDots(
+      //            { x: arrow.x, y: arrow.y },
+      //            { x: arrow.tox, y: arrow.toy }
+      //         );
+      //      }
 
-         context.beginPath();
-         context.moveTo(arrow.x, arrow.y);
-         context.strokeStyle = arrow.borderColor;
-         context.lineWidth = arrow.lineWidth;
+      //      context.beginPath();
+      //      context.moveTo(arrow.x, arrow.y);
+      //      context.strokeStyle = arrow.borderColor;
+      //      context.lineWidth = arrow.lineWidth;
 
-         if (Math.abs(arrow.x - arrow.tox) >= 100) {
-            // Calculate the perpendicular point
-            let midpointX = (arrow.tox - arrow.x) * 0.8;
+      //      if (Math.abs(arrow.x - arrow.tox) >= 100) {
+      //         // Calculate the perpendicular point
+      //         let midpointX = (arrow.tox - arrow.x) * 0.8;
 
-            context.arcTo(
-               arrow.x + midpointX,
-               arrow.y,
-               arrow.tox,
-               arrow.toy,
-               radius
-            );
-            // context.lineTo(arrow.x + midpointX, arrow.y);
-            context.arcTo(
-               arrow.x + midpointX,
-               arrow.toy,
-               arrow.tox,
-               arrow.toy,
-               radius
-            );
+      //         context.arcTo(
+      //            arrow.x + midpointX,
+      //            arrow.y,
+      //            arrow.tox,
+      //            arrow.toy,
+      //            radius
+      //         );
+      //         // context.lineTo(arrow.x + midpointX, arrow.y);
+      //         context.arcTo(
+      //            arrow.x + midpointX,
+      //            arrow.toy,
+      //            arrow.tox,
+      //            arrow.toy,
+      //            radius
+      //         );
 
-            // Draw line from the midpoint to the endpoint
-         } else {
-            // If x is equal to tox, draw a straight line to the endpoint
+      //         // Draw line from the midpoint to the endpoint
+      //      } else {
+      //         // If x is equal to tox, draw a straight line to the endpoint
 
-            context.arcTo(arrow.x, arrow.toy, arrow.tox, arrow.toy, 10);
-            // Draw a line from the end of the arc to (arrow.tox, arrow.toy)
-         }
-         // Draw the arrowhead
-         context.lineTo(arrow.tox, arrow.toy);
-         context.stroke();
+      //         context.arcTo(arrow.x, arrow.toy, arrow.tox, arrow.toy, 10);
+      //         // Draw a line from the end of the arc to (arrow.tox, arrow.toy)
+      //      }
+      //      // Draw the arrowhead
+      //      context.lineTo(arrow.tox, arrow.toy);
+      //      context.stroke();
 
-         if (
-            Math.max(arrow.x, arrow.tox) - Math.min(arrow.x, arrow.tox) <=
-            20
-         ) {
-            context.beginPath();
-            context.moveTo(arrow.tox, arrow.toy);
-            if (arrow.toy < arrow.y) {
-               //    context.arcTo();
-               context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
-               context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
-            } else {
-               context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
-               context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
-            }
+      //      if (
+      //         Math.max(arrow.x, arrow.tox) - Math.min(arrow.x, arrow.tox) <=
+      //         20
+      //      ) {
+      //         context.beginPath();
+      //         context.moveTo(arrow.tox, arrow.toy);
+      //         if (arrow.toy < arrow.y) {
+      //            //    context.arcTo();
+      //            context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
+      //            context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
+      //         } else {
+      //            context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
+      //            context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
+      //         }
 
-            context.lineTo(arrow.tox, arrow.toy);
-         } else if (arrow.x < arrow.tox) {
-            context.beginPath();
-            context.moveTo(arrow.tox, arrow.toy);
-            context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
-            context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
-            context.lineTo(arrow.tox, arrow.toy);
-         } else {
-            context.beginPath();
-            context.moveTo(arrow.tox, arrow.toy);
-            context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
-            context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
-            context.lineTo(arrow.tox, arrow.toy);
-         }
+      //         context.lineTo(arrow.tox, arrow.toy);
+      //      } else if (arrow.x < arrow.tox) {
+      //         context.beginPath();
+      //         context.moveTo(arrow.tox, arrow.toy);
+      //         context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
+      //         context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
+      //         context.lineTo(arrow.tox, arrow.toy);
+      //      } else {
+      //         context.beginPath();
+      //         context.moveTo(arrow.tox, arrow.toy);
+      //         context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
+      //         context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
+      //         context.lineTo(arrow.tox, arrow.toy);
+      //      }
 
-         context.stroke();
-      });
+      //      context.stroke();
+      //   });
 
       lineMap.forEach((line) => {
          if (line.isActive) {
             context.lineWidth = 3;
             context.fillStyle = "rgb(2, 211, 134)";
             context.strokeStyle = "rgb(2, 211, 134)";
-            // this.fourDots(
-            //    { x: line.x, y: line.y },
-            //    { x: line.tox, y: line.toy }
-            // );
 
             this.fourDots(...line.curvePoints);
 
@@ -596,11 +592,112 @@ export default class Shapes {
          context.lineWidth = line.lineWidth;
          context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
 
-         if (line.isStraight) {
+         if (line.lineType === "straight") {
             context.lineTo(
                line.curvePoints[line.curvePoints.length - 1].x,
                line.curvePoints[line.curvePoints.length - 1].y
             );
+         } else if (line.lineType === "elbow") {
+            const headlen = 8;
+
+            context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
+            context.strokeStyle = line.borderColor;
+            context.lineWidth = line.lineWidth;
+
+            if (
+               Math.abs(line.curvePoints[0].x - line.curvePoints[1].x) >= 100
+            ) {
+               // Calculate the perpendicular point
+               let midpointX =
+                  (line.curvePoints[1].x - line.curvePoints[0].x) * 0.8;
+
+               context.arcTo(
+                  line.curvePoints[0].x + midpointX,
+                  line.curvePoints[0].y,
+                  line.curvePoints[1].x,
+                  line.curvePoints[1].y,
+                  radius
+               );
+               // context.lineTo(arrow.x + midpointX, arrow.y);
+               context.arcTo(
+                  line.curvePoints[0].x + midpointX,
+                  line.curvePoints[1].y,
+                  line.curvePoints[1].x,
+                  line.curvePoints[1].y,
+                  radius
+               );
+
+               // Draw line from the midpoint to the endpoint
+            } else {
+               // If x is equal to tox, draw a straight line to the endpoint
+
+               context.arcTo(
+                  line.curvePoints[0].x,
+                  line.curvePoints[1].y,
+                  line.curvePoints[1].x,
+                  line.curvePoints[1].y,
+                  10
+               );
+               // Draw a line from the end of the arc to (arrow.tox, arrow.toy)
+            }
+            // Draw the arrowhead
+            context.lineTo(line.curvePoints[1].x, line.curvePoints[1].y);
+            context.stroke();
+
+            if (
+               Math.max(line.curvePoints[0].x, line.curvePoints[1].x) -
+                  Math.min(line.curvePoints[0].x, line.curvePoints[1].x) <=
+               20
+            ) {
+               context.beginPath();
+               context.moveTo(line.curvePoints[1].x, line.curvePoints[1].y);
+               if (line.curvePoints[1].x < line.curvePoints[0].y) {
+                  //    context.arcTo();
+                  context.lineTo(
+                     line.curvePoints[1].x - headlen,
+                     line.curvePoints[1].y + headlen
+                  );
+                  context.lineTo(
+                     line.curvePoints[1].x + headlen,
+                     line.curvePoints[1].y + headlen
+                  );
+               } else {
+                  context.lineTo(
+                     line.curvePoints[1].x - headlen,
+                     line.curvePoints[1].y - headlen
+                  );
+                  context.lineTo(
+                     line.curvePoints[1].x + headlen,
+                     line.curvePoints[1].y - headlen
+                  );
+               }
+
+               context.lineTo(line.curvePoints[1].x, line.curvePoints[1].y);
+            } else if (line.curvePoints[0].x < line.curvePoints[1].x) {
+               context.beginPath();
+               context.moveTo(line.curvePoints[1].x, line.curvePoints[1].y);
+               context.lineTo(
+                  line.curvePoints[1].x - headlen,
+                  line.curvePoints[1].y - headlen
+               );
+               context.lineTo(
+                  line.curvePoints[1].x - headlen,
+                  line.curvePoints[1].y + headlen
+               );
+               context.lineTo(line.curvePoints[1].x, line.curvePoints[1].y);
+            } else {
+               context.beginPath();
+               context.moveTo(line.curvePoints[1].x, line.curvePoints[1].y);
+               context.lineTo(
+                  line.curvePoints[1].x + headlen,
+                  line.curvePoints[1].y - headlen
+               );
+               context.lineTo(
+                  line.curvePoints[1].x + headlen,
+                  line.curvePoints[1].y + headlen
+               );
+               context.lineTo(line.curvePoints[1].x, line.curvePoints[1].y);
+            }
          } else {
             // Start the path at the first point
             if (line.curvePoints.length <= 2) {
@@ -610,8 +707,7 @@ export default class Shapes {
                   const cp1 = line.curvePoints[i];
                   const cp2 = line.curvePoints[i + 1];
 
-                  //   context.arcTo(cp1.x, cp1.y, cp2.x, cp2.y, 50);
-                  // Calculate the weighted midpoint (e.g., 75% closer to cp2)
+                  // Calculate the weighted midpoint (e.g., 80% closer to cp2)
                   const t = 0.8; // Weighting factor, 0.5 for halfway, closer to 1 for closer to cp2
                   const midPointX = (1 - t) * cp1.x + t * cp2.x;
                   const midPointY = (1 - t) * cp1.y + t * cp2.y;
@@ -619,6 +715,9 @@ export default class Shapes {
                   // Use cp1 as the control point and the adjusted midpoint as the end point
                   context.quadraticCurveTo(cp1.x, cp1.y, midPointX, midPointY);
                }
+               // Drawing the last segment to the last point
+               let lastPoint = line.curvePoints[line.curvePoints.length - 1];
+               context.lineTo(lastPoint.x, lastPoint.y);
             }
          }
          context.stroke();
@@ -877,6 +976,8 @@ export default class Shapes {
                      index: i,
                   };
                }
+
+               isResizing = true;
             }
          }
       });
@@ -1038,15 +1139,19 @@ export default class Shapes {
 
       const simpleLine = (l, key) => {
          const width = l.maxX - l.minX;
+         let horizontelParams = width < 5 ? -this.tolerance : +this.tolerance;
+         let verticalParams =
+            l.maxY - l.minY < 5 ? -this.tolerance : +this.tolerance;
 
          if (
-            mouseX >= l.maxX &&
-            mouseX <= l.maxX &&
-            mouseY >= l.minY &&
-            mouseY <= l.maxY
+            mouseX >= l.minX + horizontelParams &&
+            mouseX <= l.maxX - horizontelParams &&
+            mouseY >= l.minY + verticalParams &&
+            mouseY <= l.maxY - verticalParams
          ) {
-            if (line === null || line.maxX - line.minX > width)
+            if (line === null || line.maxX - line.minX > width) {
                line = { l, key };
+            }
          }
       };
 
@@ -1057,7 +1162,6 @@ export default class Shapes {
       lineMap.forEach(simpleLine);
 
       const setDragging = (obj) => {
-         obj.isDragging = true;
          obj.isActive = true;
          obj.offsetX = mouseX - obj.x;
          obj.offsetY = mouseY - obj.y;
@@ -1086,7 +1190,12 @@ export default class Shapes {
          line &&
          (!smallestRect || line.l.maxX - line.l.minX < smallestRect?.rect.width)
       ) {
-         setDragging(line.l);
+         if (line.l.pointTo || line.l.endTo) return;
+         line.l.curvePoints.forEach((e) => {
+            e.offsetX = mouseX - e.x;
+            e.offsetY = mouseY - e.y;
+         });
+         line.l.isActive = true;
          this.dragElement = line.key;
       } else if (smallestText) {
          setDragging(smallestText.text);
@@ -1094,11 +1203,6 @@ export default class Shapes {
       } else if (arr) {
          setDragging(arr.arrow);
          this.dragElement = arr.key;
-      } else if (line) {
-         if (line.isActive) return;
-         line.offsetX = mouseX - line.x;
-         line.offsetY = mouseY - line.y;
-         setDragging(line);
       }
    }
 
@@ -1232,6 +1336,7 @@ export default class Shapes {
       let arc = circleMap.get(this.dragElement);
       let arrow = arrows.get(this.dragElement);
       let text = textMap.get(this.dragElement);
+      let line = lineMap.get(this.dragElement);
 
       if (rect) {
          rect.isActive = true;
@@ -1241,32 +1346,32 @@ export default class Shapes {
          this.showGuides(rect.x, rect.y, this.dragElement, rect);
 
          if (rect.pointTo.length > 0) {
-            let arc = [];
+            // let arc = [];
             let line = [];
             let arrowEndRect = [];
             let arrowStartRect = [];
 
             rect.pointTo.forEach((a) => {
-               let arr = arrows.get(a);
+               //    let arr = arrows.get(a);
                let l = lineMap.get(a);
 
-               if (arr) arc.push(arr);
+               //    if (arr) arc.push(arr);
 
                if (l) line.push(l);
             });
 
             // get all the arrows connected to rect
 
-            arc.forEach((a) => {
-               let start = rectMap.get(a.startTo);
-               let end = rectMap.get(a.endTo);
-               if (start) {
-                  arrowStartRect.push(start);
-               }
-               if (end) {
-                  arrowEndRect.push(end);
-               }
-            });
+            // arc.forEach((a) => {
+            //    let start = rectMap.get(a.startTo);
+            //    let end = rectMap.get(a.endTo);
+            //    if (start) {
+            //       arrowStartRect.push(start);
+            //    }
+            //    if (end) {
+            //       arrowEndRect.push(end);
+            //    }
+            // });
 
             if (line.length > 0) {
                line.forEach((l) => {
@@ -1284,53 +1389,55 @@ export default class Shapes {
             if (arrowStartRect.length > 0) {
                arrowStartRect.forEach((ar) => {
                   if (ar === rect) {
-                     arc.forEach((a) => {
-                        if (rectMap.get(a.startTo) === rect) {
-                           if (a.tox < rect.x) {
-                              // a.tox is to the left of the rectangle
-                              a.x = rect.x;
-                              a.y = rect.y + rect.height * 0.5; // Middle of the left edge
-                           } else if (a.tox > rect.x + rect.width) {
-                              // a.tox is to the right of the rectangle
-                              a.x = rect.x + rect.width;
-                              a.y = rect.y + rect.height * 0.5; // Middle of the right edge
-                           } else {
-                              // a.tox is within the horizontal bounds of the rectangle
-                              a.x = a.tox;
-                              if (a.y < rect.y) {
-                                 // a.y is above the rectangle
-                                 a.y = rect.y;
-                              } else if (a.tox > rect.y + rect.height) {
-                                 // a.y is below the rectangle
-                                 a.y = rect.y + rect.height;
-                              } else {
-                                 // a.y is within the vertical bounds of the rectangle
-                                 a.y = rect.y; // Vertical center of the rectangle
-                              }
-                           }
-                        }
-                     });
+                     //  arc.forEach((a) => {
+                     //     if (rectMap.get(a.startTo) === rect) {
+                     //        if (a.tox < rect.x) {
+                     //           // a.tox is to the left of the rectangle
+                     //           a.x = rect.x;
+                     //           a.y = rect.y + rect.height * 0.5; // Middle of the left edge
+                     //        } else if (a.tox > rect.x + rect.width) {
+                     //           // a.tox is to the right of the rectangle
+                     //           a.x = rect.x + rect.width;
+                     //           a.y = rect.y + rect.height * 0.5; // Middle of the right edge
+                     //        } else {
+                     //           // a.tox is within the horizontal bounds of the rectangle
+                     //           a.x = a.tox;
+                     //           if (a.y < rect.y) {
+                     //              // a.y is above the rectangle
+                     //              a.y = rect.y;
+                     //           } else if (a.tox > rect.y + rect.height) {
+                     //              // a.y is below the rectangle
+                     //              a.y = rect.y + rect.height;
+                     //           } else {
+                     //              // a.y is within the vertical bounds of the rectangle
+                     //              a.y = rect.y; // Vertical center of the rectangle
+                     //           }
+                     //        }
+                     //     }
+                     //  });
 
                      line.forEach((l) => {
                         if (rectMap.get(l.startTo) === rect) {
-                           if (l.toy < rect.y) {
-                              l.x =
-                                 rect.x + (rect.x + rect.width - rect.x) * 0.5;
-                              l.y = rect.y;
-                           } else if (
-                              l.toy >= rect.y &&
-                              l.toy <= rect.y + rect.height
-                           ) {
-                              if (l.tox > rect.x) {
-                                 l.x = rect.x + rect.width;
-                              } else l.x = rect.x;
+                           const last = l.curvePoints.length - 1;
 
-                              l.y =
+                           if (l.curvePoints[last].y < rect.y) {
+                              l.curvePoints[0].x =
+                                 rect.x + (rect.x + rect.width - rect.x) * 0.5;
+                              l.curvePoints[0].y = rect.y;
+                           } else if (
+                              l.curvePoints[last].y >= rect.y &&
+                              l.curvePoints[last].y <= rect.y + rect.height
+                           ) {
+                              if (l.curvePoints[last].x > rect.x) {
+                                 l.curvePoints[0].x = rect.x + rect.width;
+                              } else l.curvePoints[0].x = rect.x;
+
+                              l.curvePoints[0].y =
                                  rect.y + (rect.y + rect.height - rect.y) * 0.5;
                            } else {
-                              l.x =
+                              l.curvePoints[0].x =
                                  rect.x + (rect.x + rect.width - rect.x) * 0.5;
-                              l.y = rect.y + rect.height;
+                              l.curvePoints[0].y = rect.y + rect.height;
                            }
                         }
                      });
@@ -1341,60 +1448,61 @@ export default class Shapes {
             if (arrowEndRect.length > 0) {
                arrowEndRect.forEach((ar) => {
                   if (ar === rect) {
-                     arc.forEach((a) => {
-                        if (rectMap.get(a.endTo) === rect) {
-                           if (a.x > rect.x + rect.width) {
-                              // a.x is to the right of the rectangle
-                              a.tox = rect.x + rect.width;
-                              a.toy = rect.y + rect.height * 0.5; // Middle of the right edge
-                           } else if (a.x < rect.x) {
-                              // a.x is to the left of the rectangle
-                              a.tox = rect.x;
-                              a.toy = rect.y + rect.height * 0.5; // Middle of the left edge
-                           } else {
-                              // a.x is within the horizontal bounds of the rectangle
-                              if (a.y < rect.y) {
-                                 // a.y is above the rectangle
-                                 a.tox = a.x;
-                                 a.toy = rect.y; // Top edge
-                              } else if (a.y > rect.y + rect.height) {
-                                 // a.y is below the rectangle
-                                 a.tox = a.x;
-                                 a.toy = rect.y + rect.height; // Bottom edge
-                              } else {
-                                 // a.x and a.y are inside the rectangle bounds
-                                 // Define some default behavior if needed
-                                 a.tox = rect.x + rect.width * 0.5; // Center of the rectangle
-                                 a.toy = rect.y + rect.height * 0.5; // Center of the rectangle
-                              }
-                           }
-                        }
-                     });
+                     //  arc.forEach((a) => {
+                     //     if (rectMap.get(a.endTo) === rect) {
+                     //        if (a.x > rect.x + rect.width) {
+                     //           // a.x is to the right of the rectangle
+                     //           a.tox = rect.x + rect.width;
+                     //           a.toy = rect.y + rect.height * 0.5; // Middle of the right edge
+                     //        } else if (a.x < rect.x) {
+                     //           // a.x is to the left of the rectangle
+                     //           a.tox = rect.x;
+                     //           a.toy = rect.y + rect.height * 0.5; // Middle of the left edge
+                     //        } else {
+                     //           // a.x is within the horizontal bounds of the rectangle
+                     //           if (a.y < rect.y) {
+                     //              // a.y is above the rectangle
+                     //              a.tox = a.x;
+                     //              a.toy = rect.y; // Top edge
+                     //           } else if (a.y > rect.y + rect.height) {
+                     //              // a.y is below the rectangle
+                     //              a.tox = a.x;
+                     //              a.toy = rect.y + rect.height; // Bottom edge
+                     //           } else {
+                     //              // a.x and a.y are inside the rectangle bounds
+                     //              // Define some default behavior if needed
+                     //              a.tox = rect.x + rect.width * 0.5; // Center of the rectangle
+                     //              a.toy = rect.y + rect.height * 0.5; // Center of the rectangle
+                     //           }
+                     //        }
+                     //     }
+                     //  });
 
                      line.forEach((l) => {
                         if (rectMap.get(l.endTo) === rect) {
-                           if (l.y < rect.y) {
-                              l.tox =
+                           const last = l.curvePoints.length - 1;
+                           if (l.curvePoints[0].y < rect.y) {
+                              l.curvePoints[last].x =
                                  rect.x + (rect.x + rect.width - rect.x) * 0.5;
-                              l.toy = rect.y;
+                              l.curvePoints[last].y = rect.y;
                            } else if (
-                              l.y >= rect.y &&
-                              l.y <= rect.y + rect.height
+                              l.curvePoints[0].y >= rect.y &&
+                              l.curvePoints[0].y <= rect.y + rect.height
                            ) {
                               if (
-                                 l.x <
+                                 l.curvePoints[0].x <
                                  rect.x + (rect.x + rect.width - rect.x) * 0.5
                               ) {
-                                 l.tox = rect.x;
+                                 l.curvePoints[last].x = rect.x;
                               } else {
-                                 l.tox = rect.x + rect.width;
+                                 l.curvePoints[last].x = rect.x + rect.width;
                               }
-                              l.toy =
+                              l.curvePoints[last].y =
                                  rect.y + (rect.y + rect.height - rect.y) * 0.5;
                            } else {
-                              l.tox =
+                              l.curvePoints[last].x =
                                  rect.x + (rect.x + rect.width - rect.x) * 0.5;
-                              l.toy = rect.y + rect.height;
+                              l.curvePoints[last].y = rect.y + rect.height;
                            }
                         }
                      });
@@ -1470,22 +1578,23 @@ export default class Shapes {
                      });
                      line.forEach((l) => {
                         if (circleMap.get(l.startTo) === arc) {
-                           if (l.toy < arc.y - arc.yRadius) {
-                              l.x = arc.x;
-                              l.y = arc.y - arc.yRadius;
+                           const last = l.curvePoints.length - 1;
+                           if (l.curvePoints[last].y < arc.y - arc.yRadius) {
+                              l.curvePoints[0].x = arc.x;
+                              l.curvePoints[0].y = arc.y - arc.yRadius;
                            } else if (
-                              l.toy > arc.y - arc.yRadius &&
-                              l.toy < arc.y + arc.yRadius
+                              l.curvePoints[last].y > arc.y - arc.yRadius &&
+                              l.curvePoints[last].y < arc.y + arc.yRadius
                            ) {
-                              if (l.tox < arc.x - arc.xRadius) {
-                                 l.x = arc.x - arc.xRadius;
+                              if (l.curvePoints[last].x < arc.x - arc.xRadius) {
+                                 l.curvePoints[0].x = arc.x - arc.xRadius;
                               } else {
-                                 l.x = arc.x + arc.xRadius;
+                                 l.curvePoints[0].x = arc.x + arc.xRadius;
                               }
-                              l.y = arc.y;
+                              l.curvePoints[0].y = arc.y;
                            } else {
-                              l.y = arc.y + arc.yRadius;
-                              l.x = arc.x;
+                              l.curvePoints[0].y = arc.y + arc.yRadius;
+                              l.curvePoints[0].x = arc.x;
                            }
                         }
                      });
@@ -1524,20 +1633,22 @@ export default class Shapes {
                      });
                      line.forEach((l) => {
                         if (circleMap.get(l.endTo) === arc) {
-                           if (l.y < arc.y - arc.yRadius) {
-                              l.tox = arc.x;
-                              l.toy = arc.y - arc.yRadius;
+                           const last = l.curvePoints.length - 1;
+                           if (l.curvePoints[0].y < arc.y - arc.yRadius) {
+                              l.curvePoints[last].x = arc.x;
+                              l.curvePoints[last].y = arc.y - arc.yRadius;
                            } else if (
-                              l.y > arc.y - arc.yRadius &&
-                              l.y < arc.y + arc.yRadius
+                              l.curvePoints[0].y > arc.y - arc.yRadius &&
+                              l.curvePoints[0].y < arc.y + arc.yRadius
                            ) {
-                              if (l.x < arc.x) {
-                                 l.tox = arc.x - arc.xRadius;
-                              } else l.tox = arc.x + arc.xRadius;
-                              l.toy = arc.y;
+                              if (l.curvePoints[0].x < arc.x) {
+                                 l.curvePoints[last].x = arc.x - arc.xRadius;
+                              } else
+                                 l.curvePoints[last].x = arc.x + arc.xRadius;
+                              l.curvePoints[last].y = arc.y;
                            } else {
-                              l.tox = arc.x;
-                              l.toy = arc.y + arc.yRadius;
+                              l.curvePoints[last].x = arc.x;
+                              l.curvePoints[last].y = arc.y + arc.yRadius;
                            }
                         }
                      });
@@ -1546,8 +1657,7 @@ export default class Shapes {
             }
          }
          this.draw();
-      }
-      if (arrow) {
+      } else if (arrow) {
          const deltaX = mouseX - arrow.offsetX;
          const deltaY = mouseY - arrow.offsetY;
          const diffX = arrow.tox - arrow.x;
@@ -1558,8 +1668,7 @@ export default class Shapes {
          arrow.tox = deltaX + diffX;
          arrow.toy = deltaY + diffY;
          this.draw();
-      }
-      if (text) {
+      } else if (text) {
          text.x = mouseX - text.offsetX;
          text.y = mouseY - text.offsetY;
          if (text.pointTo.length > 0) {
@@ -1617,31 +1726,17 @@ export default class Shapes {
             }
          }
          this.draw();
+      } else if (line) {
+         line.curvePoints.forEach((ele) => {
+            const deltaX = mouseX - ele.offsetX;
+            const deltaY = mouseY - ele.offsetY;
+
+            ele.x = deltaX;
+            ele.y = deltaY;
+         });
+
+         this.draw();
       }
-
-      // line resize
-      lineMap.forEach((line) => {
-         if (line.isDragging) {
-            const deltaX = mouseX - line.offsetX;
-            const deltaY = mouseY - line.offsetY;
-            const diffX = line.tox - line.x;
-            const diffY = line.toy - line.y;
-
-            line.x = deltaX;
-            line.y = deltaY;
-            line.tox = deltaX + diffX;
-            line.toy = deltaY + diffY;
-         }
-         if (line.isResizingStart) {
-            line.isActive = true;
-            line.x = mouseX;
-            line.y = mouseY;
-         } else if (line.isResizingEnd) {
-            line.isActive = true;
-            line.tox = mouseX;
-            line.toy = mouseY;
-         }
-      });
    }
 
    mouseUp(e) {
@@ -1652,6 +1747,7 @@ export default class Shapes {
 
       const arrow = arrows.get(this.resizeElement?.key);
       const rect = rectMap.get(this.resizeElement?.key);
+      const line = lineMap.get(this.resizeElement?.key);
 
       if (arrow) {
          if (this.resizeElement?.direction === "resizeEnd") {
@@ -1858,24 +1954,18 @@ export default class Shapes {
       if (rect) {
          rect.isActive = true;
          this.draw();
-      }
-
-      lineMap.forEach((line, key) => {
-         if (line.isDragging) {
-            line.isDragging = false;
-         }
-         if (line.isResizingStart) {
-            line.isResizingStart = false;
-
+      } else if (line) {
+         const key = this.resizeElement.key;
+         if (this.resizeElement.direction === "resizeStart") {
             if (line.startTo) {
                const { rect, sphere, text } = this.getShape(line.startTo);
 
                if (rect && rect.pointTo.length > 0) {
                   if (
-                     line.x < rect.x ||
-                     line.x > rect.x + rect.width ||
-                     line.y < rect.y ||
-                     line.y > rect.y + rect.height
+                     line.curvePoints[0].x < rect.x ||
+                     line.curvePoints[0].x > rect.x + rect.width ||
+                     line.curvePoints[0].y < rect.y ||
+                     line.curvePoints[0].y > rect.y + rect.height
                   ) {
                      rect.pointTo.filter((r) => {
                         return r !== key;
@@ -1886,7 +1976,8 @@ export default class Shapes {
 
                if (sphere && sphere.pointTo.length > 0) {
                   const distance = Math.sqrt(
-                     (line.x - sphere.x) ** 2 - (line.y - sphere.y) ** 2
+                     (line.curvePoints[0].x - sphere.x) ** 2 -
+                        (line.curvePoints[0].y - sphere.y) ** 2
                   );
                   if (distance > sphere.xRadius || distance > sphere.yRadius) {
                      sphere.pointTo.filter((s) => s !== key);
@@ -1894,24 +1985,26 @@ export default class Shapes {
                   }
                }
             }
-
             rectMap.forEach((rect, rectKey) => {
                if (
-                  line.x >= rect.x - this.tolerance &&
-                  line.x <= rect.x + rect.width + this.tolerance &&
-                  line.y >= rect.y - this.tolerance &&
-                  line.y <= rect.y + rect.height + this.tolerance
+                  line.curvePoints[0].x >= rect.x - this.tolerance &&
+                  line.curvePoints[0].x <=
+                     rect.x + rect.width + this.tolerance &&
+                  line.curvePoints[0].y >= rect.y - this.tolerance &&
+                  line.curvePoints[0].y <= rect.y + rect.height + this.tolerance
                ) {
                   let end = rectMap.get(line.endTo);
-                  if (end === rect) return;
+                  if (end && end === rect) return;
 
                   rect.pointTo.push(key);
                   line.startTo = rectKey;
                }
             });
+
             circleMap.forEach((circle, circleKey) => {
                const distance = Math.sqrt(
-                  (line.x - circle.x) ** 2 - (line.y - circle.y) ** 2
+                  (line.curvePoints[0].x - circle.x) ** 2 -
+                     (line.curvePoints[0].y - circle.y) ** 2
                );
                if (distance < circle.xRadius && distance < circle.yRadius) {
                   if (circleKey === line.endTo) return;
@@ -1919,17 +2012,17 @@ export default class Shapes {
                   line.startTo = circleKey;
                }
             });
-         } else if (line.isResizingEnd) {
-            line.isResizingEnd = false;
+         } else if (this.resizeElement.direction === "resizeEnd") {
+            const length = line.curvePoints.length - 1;
 
             if (line.endTo) {
                const { rect, sphere, text } = this.getShape(line.startTo);
                if (rect && rect.pointTo.length > 0) {
                   if (
-                     line.tox < rect.x ||
-                     line.tox > rect.x + rect.width ||
-                     line.toy < rect.y ||
-                     line.toy > rect.y + rect.height
+                     line.curvePoints[length].x < rect.x ||
+                     line.curvePoints[length].x > rect.x + rect.width ||
+                     line.curvePoints[length].y < rect.y ||
+                     line.curvePoints[length].y > rect.y + rect.height
                   ) {
                      rect.pointTo.filter((r) => {
                         return r !== key;
@@ -1940,7 +2033,8 @@ export default class Shapes {
 
                if (sphere && sphere.pointTo.length > 0) {
                   const distance = Math.sqrt(
-                     (line.tox - circle.x) ** 2 - (line.toy - circle.y) ** 2
+                     (line.curvePoints[length].x - sphere.x) ** 2 -
+                        (line.curvePoints[length].y - sphere.y) ** 2
                   );
                   if (distance > sphere.xRadius || distance > sphere.yRadius) {
                      sphere.pointTo.filter((s) => s !== key);
@@ -1951,33 +2045,38 @@ export default class Shapes {
 
             rectMap.forEach((rect, rectKey) => {
                if (
-                  line.tox >= rect.x - this.tolerance &&
-                  line.toy <= rect.x + rect.width + this.tolerance &&
-                  line.toy >= rect.y - this.tolerance
-                  //   line.y <= rect.y + rect.headlen + this.tolerance
+                  line.curvePoints[length].x >= rect.x - this.tolerance &&
+                  line.curvePoints[length].x <=
+                     rect.x + rect.width + this.tolerance &&
+                  line.curvePoints[length].y >= rect.y - this.tolerance &&
+                  line.curvePoints[length].y <=
+                     rect.y + rect.height + this.tolerance
                ) {
                   let start = rectMap.get(line.startTo);
-                  if (start === rect) return;
+                  if (start && start === rect) return;
                   rect.pointTo.push(key);
                   line.endTo = rectKey;
                }
             });
             circleMap.forEach((circle, circleKey) => {
                const distance = Math.sqrt(
-                  (line.tox - circle.x) ** 2 - (line.toy - circle.y) ** 2
+                  (line.curvePoints[length].x - circle.x) ** 2 -
+                     (line.curvePoints[length].y - circle.y) ** 2
                );
 
-               if (distance < circle.xRadius && distance < circle.yRadius) {
+               if (distance <= circle.xRadius && distance <= circle.yRadius) {
                   if (circleKey === line.startTo) return;
                   circle.pointTo.push(key);
                   line.endTo = circleKey;
                }
             });
          }
-      });
+         this.updateLineMinMax(this.resizeElement.key);
+      }
 
-      const rectDrag = rectMap.get(this?.dragElement);
-      const arcDrag = circleMap.get(this?.dragElement);
+      const rectDrag = rectMap.get(this.dragElement);
+      const arcDrag = circleMap.get(this.dragElement);
+      const lineDrag = lineMap.get(this.dragElement);
 
       if (rectDrag) {
          this.updateGuides(
@@ -1987,6 +2086,11 @@ export default class Shapes {
             rectDrag.x + rectDrag.width,
             rectDrag.y + rectDrag.height
          );
+         if (rectDrag.pointTo.length > 0) {
+            rectDrag.pointTo.forEach((l) => {
+               this.updateLineMinMax(l);
+            });
+         }
       } else if (arcDrag) {
          this.updateGuides(
             this.dragElement,
@@ -1995,7 +2099,15 @@ export default class Shapes {
             arcDrag.x + arcDrag.xRadius,
             arcDrag.y + arcDrag.yRadius
          );
+         if (arcDrag.pointTo.length > 0) {
+            arcDrag.pointTo.forEach((l) => {
+               this.updateLineMinMax(l);
+            });
+         }
+      } else if (lineDrag) {
+         this.updateLineMinMax(this.dragElement);
       }
+
       breakPointsCtx.clearRect(
          0,
          0,
@@ -2089,6 +2201,29 @@ export default class Shapes {
       const sphere = circleMap.get(key);
       const text = textMap.get(key);
       return { rect, sphere, text };
+   }
+
+   updateLineMinMax(key) {
+      let line = lineMap.get(key);
+      line.minX = Infinity;
+      line.maxX = -Infinity;
+      line.minY = Infinity;
+      line.maxY = -Infinity;
+
+      line.curvePoints.forEach((ele) => {
+         if (ele.x < line.minX) {
+            line.minX = ele.x;
+         }
+         if (ele.x > line.maxX) {
+            line.maxX = ele.x;
+         }
+         if (ele.y < line.minY) {
+            line.minY = ele.y;
+         }
+         if (ele.y > line.maxY) {
+            line.maxY = ele.y;
+         }
+      });
    }
 }
 

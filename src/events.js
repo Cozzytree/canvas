@@ -21,7 +21,7 @@ import {
    scrollContainer,
    docuemntDiv,
    canvasDiv,
-   line,
+   lineBtn,
    zoomText,
    text,
 } from "./selectors";
@@ -154,33 +154,27 @@ lineArrow.addEventListener("click", () => {
          canvas.getBoundingClientRect().top +
          scrollBar.scrollPositionY;
 
-      const newArr = new Arrows(mouseX, mouseY, mouseX + 100, mouseY);
+      const temp = new Line("elbow");
+      temp.curvePoints.push(
+         { x: mouseX, y: mouseY },
+         { x: mouseX + 100, y: mouseY }
+      );
+      temp.minX = mouseX;
+      temp.maxX = mouseX + 100;
+      temp.minY = temp.maxY = mouseY;
+      lineMap.set(Math.random() * 10, temp);
+      temp.draw();
+      //   const newArr = new Arrows(mouseX, mouseY, mouseX + 100, mouseY);
 
-      arrows.set(Math.random() * 10, newArr);
       config.mode = "free";
       changeStyle();
-      newArr.isActive = true;
-      newArr.drawArrow(newArr.x, newArr.y, newArr.tox, newArr.toy, 2, "white");
+      //   arrows.set(Math.random() * 10, newArr);
+      //   newArr.isActive = true;
+      //   newArr.drawArrow(newArr.x, newArr.y, newArr.tox, newArr.toy, 2, "white");
    });
 });
 
 // draw Line
-
-// function drawLine(line, tempPoint) {
-//   context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before re-drawing
-//   context.beginPath();
-//   context.strokeStyle = "white";
-//   context.lineWidth = 1;
-//   context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
-//   for (let i = 1; i < line.curvePoints.length; i++) {
-//     context.lineTo(line.curvePoints[i].x, line.curvePoints[i].y);
-//   }
-//   if (tempPoint) {
-//     context.lineTo(tempPoint.x, tempPoint.y);
-//   }
-//   context.stroke();
-//   context.closePath();
-// }
 
 function drawCurve(line, tempPoint) {
    context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before re-drawing
@@ -218,7 +212,7 @@ function drawCurve(line, tempPoint) {
    context.closePath();
 }
 
-line.addEventListener("click", () => {
+lineBtn.addEventListener("click", () => {
    //   document.body.style.cursor = "url('/cursor-move.svg') 0 0, auto";
 
    document.querySelectorAll(".rectShape").forEach((ele) => ele.remove());
@@ -257,7 +251,7 @@ line.addEventListener("click", () => {
       }
 
       if (!line && !isDrawing) {
-         line = new Line(x, y);
+         line = new Line();
          line.curvePoints.push({ x: x, y: y });
          isDrawing = true;
          canvas.addEventListener("mousemove", onMouseMove);
@@ -279,7 +273,6 @@ line.addEventListener("click", () => {
       line.maxY = maxY;
       //   line.isStraight = true;
       lineMap.set(Math.random() * 10, line);
-      console.log(line);
       shape.draw();
       config.mode = "free";
       changeStyle();

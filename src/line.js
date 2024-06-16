@@ -1,29 +1,19 @@
-import { lineMap } from "./main";
-import { canvas, context } from "./selectors";
+import { context } from "./selectors";
 import Shapes from "./shape";
 
 export default class Line extends Shapes {
-   constructor() {
+   constructor(lineType) {
       super();
-      //   this.x = x;
-      //   this.y = y;
-      // this.isResizingStart = false;
-      // this.isResizingEnd = false;
       this.startTo = null;
       this.endTo = null;
       this.curvePoints = [];
       this.type = "line";
-      this.isStraight = false;
+      this.lineType = lineType;
       this.minX = null;
       this.maxX = null;
       this.minY = null;
       this.maxY = null;
-      // this.isDrawing = false;
-      // this.startPoint = null;
-      // this.currentPoint = null;
    }
-   // this.tox = tox;
-   // this.toy = toy;
 
    drawLine(x, y, tox, toy) {
       context.beginPath();
