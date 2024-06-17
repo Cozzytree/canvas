@@ -5,7 +5,6 @@ import {
    circleMap,
    textMap,
    pencilMap,
-   arrows,
    lineMap,
    breakpoints,
 } from "./main.js";
@@ -27,7 +26,6 @@ import {
 } from "./selectors";
 import { Circle } from "./sphere.js";
 import { Text } from "./text.js";
-import { Arrows } from "./arrow.js";
 import { shape } from "./shape.js";
 
 const newRect = document.getElementById("newRect");
@@ -280,33 +278,6 @@ lineBtn.addEventListener("click", () => {
 
    canvas.addEventListener("click", onCanvasClick);
    canvas.addEventListener("dblclick", onCanvasDblClick);
-   //   const line = document.createElement("div");
-   //   line.classList.add("rectShape");
-   //   line.style.width = "150px";
-   //   line.style.height = "2px";
-   //   line.style.position = "absolute";
-   //   document.addEventListener("mousemove", (e) => {
-   //     // console.log(config.mode);
-   //     if (config.mode !== "line") return;
-   //     line.style.top = e.clientY + "px";
-   //     line.style.left = e.clientX + "px";
-   //     document.body.append(line);
-   //   });
-   //   canvas.addEventListener("click", (e) => {
-   //     if (config.mode !== "line") return;
-   //     line.remove();
-   //     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-   //     const mouseY =
-   //       e.clientY -
-   //       canvas.getBoundingClientRect().top +
-   //       scrollBar.scrollPositionY;
-   //     const newLine = new Line(mouseX, mouseY, mouseX + 140, mouseY);
-   //     lineMap.set(Math.random() * 10, newLine);
-   //     config.mode = "free";
-   //     changeStyle();
-   //     newLine.isActive = true;
-   //     newLine.drawLine(newLine.x, newLine.y, newLine.tox, newLine.toy);
-   //   });
 });
 
 canvas.addEventListener("dblclick", function (event) {
@@ -474,10 +445,10 @@ export function changeDoc() {
       case "doc":
          scrollContainer.classList.remove("sm:grid");
          canvasDiv.classList.add("hidden");
-         docuemntDiv.classList.remove("hidden");
-         switchDoc.classList.add("bg-zinc-400/30");
          switchCanvas.classList.remove("bg-zinc-400/30");
          switchBoth.classList.remove("bg-zinc-400/30");
+         docuemntDiv.classList.remove("hidden");
+         switchDoc.classList.add("bg-zinc-400/30");
       default:
          break;
    }
@@ -494,8 +465,7 @@ switchCanvas.addEventListener("click", () => {
 });
 
 switchDoc.addEventListener("click", () => {
-   config.docMode = "doc";
-   console.log(config.docMode);
+    config.docMode = "doc";
    changeDoc();
 });
 

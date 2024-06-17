@@ -50,7 +50,6 @@ export default class Shapes {
          const allShapes = [
             ...rectMap.values(),
             ...circleMap.values(),
-            ...arrows.values(),
             ...textMap.values(),
             ...lineMap.values(),
          ];
@@ -61,7 +60,6 @@ export default class Shapes {
          let circle = null;
          let square = null;
          let text = null;
-         let arrow = null;
          let minLine = null;
 
          // Check if the click is within any rectangle
@@ -106,35 +104,6 @@ export default class Shapes {
             }
          }
 
-         arrows.forEach((arr) => {
-            if (arr.x < arr.tox) {
-               if (
-                  clickX >= arr.x - this.tolerance &&
-                  clickX <= arr.tox + this.tolerance &&
-                  clickY >= arr.y - this.tolerance &&
-                  clickY <= arr.toy + this.tolerance
-               ) {
-                  if (
-                     arrow === null ||
-                     Math.abs(arr.tox - arr.x) < Math.abs(arrow.tox - arrow.x)
-                  ) {
-                     arrow = arr;
-                  }
-               }
-            } else if (arr.x > arr.tox) {
-               if (
-                  clickX <= arr.x - this.tolerance &&
-                  clickX >= arr.tox + this.tolerance &&
-                  clickY >= arr.y - this.tolerance &&
-                  clickY <= arr.toy + this.tolerance
-               ) {
-                  if (arrow === null || arr.tox - arr.x < arrow.tox - arrow.x) {
-                     arrow = arr;
-                  }
-               }
-            }
-         });
-
          lineMap.forEach((l) => {
             const width = l.maxX - l.minX;
 
@@ -172,12 +141,6 @@ export default class Shapes {
             config.currentActive = text;
             text.isActive = true;
          } else if (
-            arrow &&
-            (!square || Math.abs(arrow.tox - arrow.x) < square.width)
-         ) {
-            config.currentActive = arrow;
-            arrow.isActive = true;
-         } else if (
             minLine &&
             (!square || minLine.maxX - minLine.minX < square.width)
          ) {
@@ -202,9 +165,6 @@ export default class Shapes {
             textMap.forEach((text) => {
                text.isActive = true;
             });
-            arrows.forEach((arrow) => {
-               arrow.isActive = true;
-            });
             this.draw();
          }
       });
@@ -215,50 +175,43 @@ export default class Shapes {
             rectMap.forEach((rect, key) => {
                if (rect.isActive) {
                   rectMap.delete(key);
+                  breakpoints.delete(key);
                }
             });
 
-            arrows.forEach((arrow, key) => {
-               if (arrow.isActive) {
-                  if (arrow.endTo) {
-                     const rect = rectMap.get(arrow.endTo);
-                     const arc = circleMap.get(arrow.endTo);
-                     const text = textMap.get(arrow.endTo);
-
-                     if (arc) {
-                        arc.pointTo = arc.pointTo.filter((a) => a !== key);
-                     }
-                     if (rect) {
-                        rect.pointTo = rect.pointTo.filter((a) => a !== key);
-                     }
-
-                     if (text) {
-                        text.pointTo = text.pointTo.filter((a) => a !== key);
-                     }
+            lineMap.forEach((line, key) => {
+               if (line.startTo) {
+                  const { rect, text, sphere } = this.getShape(line.startTo);
+                  if (rect) {
+                     rect.pointTo.filter((r) => r !== key);
                   }
-                  if (arrow.startTo) {
-                     const rect = rectMap.get(arrow.startTo);
-                     const arc = circleMap.get(arrow.startTo);
-                     const text = textMap.get(arrow.startTo);
-
-                     if (arc) {
-                        arc.pointTo = arc.pointTo.filter((a) => a !== key);
-                     }
-                     if (rect) {
-                        rect.pointTo = rect.pointTo.filter((a) => a !== key);
-                     }
-
-                     if (text) {
-                        text.pointTo = text.pointTo.filter((a) => a !== key);
-                     }
+                  if (text) {
+                     text.pointTo.filter((r) => r !== key);
                   }
-                  arrows.delete(key);
+                  if (sphere) {
+                     sphere.pointTo.filter((r) => r !== key);
+                  }
+               } else if (line.endTo) {
+                  const { rect, text, sphere } = this.getShape(line.endTo);
+
+                  if (rect) {
+                     rect.pointTo.filter((r) => r !== key);
+                  }
+                  if (text) {
+                     text.pointTo.filter((r) => r !== key);
+                  }
+                  if (sphere) {
+                     sphere.pointTo.filter((r) => r !== key);
+                  }
                }
+               lineMap.delete(key);
             });
+
             //remove selected arcs
             circleMap.forEach((arc, key) => {
                if (arc.isActive) {
                   circleMap.delete(key);
+                  breakpoints.delete(key);
                }
             });
 
@@ -486,88 +439,6 @@ export default class Shapes {
          });
       });
 
-      //variables to be used when creating the arrow
-      //   let headlen = 6;
-      //   arrows.forEach((arrow) => {
-      //      if (arrow.isActive) {
-      //         context.strokeStyle = "rgb(2, 211, 134)";
-      //         context.fillStyle = "rgb(2, 211, 134)"; // Color for active dots
-
-      //         this.fourDots(
-      //            { x: arrow.x, y: arrow.y },
-      //            { x: arrow.tox, y: arrow.toy }
-      //         );
-      //      }
-
-      //      context.beginPath();
-      //      context.moveTo(arrow.x, arrow.y);
-      //      context.strokeStyle = arrow.borderColor;
-      //      context.lineWidth = arrow.lineWidth;
-
-      //      if (Math.abs(arrow.x - arrow.tox) >= 100) {
-      //         // Calculate the perpendicular point
-      //         let midpointX = (arrow.tox - arrow.x) * 0.8;
-
-      //         context.arcTo(
-      //            arrow.x + midpointX,
-      //            arrow.y,
-      //            arrow.tox,
-      //            arrow.toy,
-      //            radius
-      //         );
-      //         // context.lineTo(arrow.x + midpointX, arrow.y);
-      //         context.arcTo(
-      //            arrow.x + midpointX,
-      //            arrow.toy,
-      //            arrow.tox,
-      //            arrow.toy,
-      //            radius
-      //         );
-
-      //         // Draw line from the midpoint to the endpoint
-      //      } else {
-      //         // If x is equal to tox, draw a straight line to the endpoint
-
-      //         context.arcTo(arrow.x, arrow.toy, arrow.tox, arrow.toy, 10);
-      //         // Draw a line from the end of the arc to (arrow.tox, arrow.toy)
-      //      }
-      //      // Draw the arrowhead
-      //      context.lineTo(arrow.tox, arrow.toy);
-      //      context.stroke();
-
-      //      if (
-      //         Math.max(arrow.x, arrow.tox) - Math.min(arrow.x, arrow.tox) <=
-      //         20
-      //      ) {
-      //         context.beginPath();
-      //         context.moveTo(arrow.tox, arrow.toy);
-      //         if (arrow.toy < arrow.y) {
-      //            //    context.arcTo();
-      //            context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
-      //            context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
-      //         } else {
-      //            context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
-      //            context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
-      //         }
-
-      //         context.lineTo(arrow.tox, arrow.toy);
-      //      } else if (arrow.x < arrow.tox) {
-      //         context.beginPath();
-      //         context.moveTo(arrow.tox, arrow.toy);
-      //         context.lineTo(arrow.tox - headlen, arrow.toy - headlen);
-      //         context.lineTo(arrow.tox - headlen, arrow.toy + headlen);
-      //         context.lineTo(arrow.tox, arrow.toy);
-      //      } else {
-      //         context.beginPath();
-      //         context.moveTo(arrow.tox, arrow.toy);
-      //         context.lineTo(arrow.tox + headlen, arrow.toy - headlen);
-      //         context.lineTo(arrow.tox + headlen, arrow.toy + headlen);
-      //         context.lineTo(arrow.tox, arrow.toy);
-      //      }
-
-      //      context.stroke();
-      //   });
-
       lineMap.forEach((line) => {
          if (line.isActive) {
             context.lineWidth = 3;
@@ -576,32 +447,31 @@ export default class Shapes {
 
             this.fourDots(...line.curvePoints);
 
-            context.beginPath();
-            context.strokeStyle = "blue";
-            context.lineWidth = 1;
-            context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
-            for (let i = 1; i < line.curvePoints.length; i++) {
-               context.lineTo(line.curvePoints[i].x, line.curvePoints[i].y);
+            if (!line.lineType || line.lineType === "straight") {
+               context.beginPath();
+               context.lineWidth = 1;
+               context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
+               for (let i = 1; i < line.curvePoints.length; i++) {
+                  context.lineTo(line.curvePoints[i].x, line.curvePoints[i].y);
+               }
+               context.stroke();
+               context.closePath();
             }
-            context.stroke();
-            context.closePath();
+         } else {
+            context.strokeStyle = line.borderColor;
          }
 
          context.beginPath();
-         context.strokeStyle = line.borderColor;
          context.lineWidth = line.lineWidth;
          context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
 
          if (line.lineType === "straight") {
-            context.lineTo(
-               line.curvePoints[line.curvePoints.length - 1].x,
-               line.curvePoints[line.curvePoints.length - 1].y
-            );
+            for (let i = 0; i < line.curvePoints.length; i++) {
+               context.lineTo(line.curvePoints[i].x, line.curvePoints[i].y);
+            }
          } else if (line.lineType === "elbow") {
             const headlen = 8;
 
-            context.moveTo(line.curvePoints[0].x, line.curvePoints[0].y);
-            context.strokeStyle = line.borderColor;
             context.lineWidth = line.lineWidth;
 
             if (
@@ -731,8 +601,8 @@ export default class Shapes {
       context.lineWidth = 1.7;
       for (let i = 0; i < sides.length; i++) {
          context.beginPath();
-         context.fillStyle = "red";
-         context.arc(sides[i].x, sides[i].y, 4, 0, 2 * Math.PI, false);
+         context.fillStyle = "green";
+         context.arc(sides[i].x, sides[i].y, 6, 0, 2 * Math.PI, false);
          context.fill();
          context.closePath();
       }
@@ -1214,7 +1084,6 @@ export default class Shapes {
 
       let rectResize = rectMap.get(this.resizeElement?.key);
       let circleResize = circleMap.get(this.resizeElement?.key);
-      let arrowResize = arrows.get(this.resizeElement?.key);
       let textResize = textMap.get(this.resizeElement?.key);
       let lineResize = lineMap.get(this.resizeElement?.key);
 
@@ -1259,15 +1128,6 @@ export default class Shapes {
             circleResize.isActive = true;
             circleResize.xRadius = Math.abs(mouseX - circleResize.x);
             circleResize.yRadius = Math.abs(mouseY - circleResize.y);
-         }
-         this.draw();
-      } else if (arrowResize) {
-         if (this.resizeElement.direction === "resizeStart") {
-            arrowResize.x = mouseX;
-            arrowResize.y = mouseY;
-         } else {
-            arrowResize.tox = mouseX;
-            arrowResize.toy = mouseY;
          }
          this.draw();
       } else if (textResize) {
@@ -1330,11 +1190,10 @@ export default class Shapes {
          }
       }
 
-      if (rectResize || circleResize || arrowResize || textResize) return;
+      if (rectResize || circleResize || textResize) return;
 
       let rect = rectMap.get(this.dragElement);
       let arc = circleMap.get(this.dragElement);
-      let arrow = arrows.get(this.dragElement);
       let text = textMap.get(this.dragElement);
       let line = lineMap.get(this.dragElement);
 
@@ -1657,67 +1516,62 @@ export default class Shapes {
             }
          }
          this.draw();
-      } else if (arrow) {
-         const deltaX = mouseX - arrow.offsetX;
-         const deltaY = mouseY - arrow.offsetY;
-         const diffX = arrow.tox - arrow.x;
-         const diffY = arrow.toy - arrow.y;
-
-         arrow.x = deltaX;
-         arrow.y = deltaY;
-         arrow.tox = deltaX + diffX;
-         arrow.toy = deltaY + diffY;
-         this.draw();
       } else if (text) {
          text.x = mouseX - text.offsetX;
          text.y = mouseY - text.offsetY;
          if (text.pointTo.length > 0) {
             let arcs = text.pointTo.map((t) => {
-               return arrows.get(t);
+               return lineMap.get(t);
             });
-            let arrowStart = [];
-            let arrowEnd = [];
+            let lineStart = [];
+            let lineEnd = [];
 
             arcs.forEach((a) => {
                let start = textMap.get(a.startTo);
                let end = textMap.get(a.endTo);
                if (start) {
-                  arrowStart.push(start);
+                  lineStart.push(start);
                }
                if (end) {
-                  arrowEnd.push(end);
+                  lineEnd.push(end);
                }
             });
 
-            if (arrowStart.length > 0) {
-               arrowStart.forEach((ar) => {
+            if (lineStart.length > 0) {
+               lineStart.forEach((ar) => {
                   if (ar === text) {
                      arcs.forEach((a) => {
+                        const length = a.curvePoints.length - 1;
                         if (textMap.get(a.startTo) === text) {
-                           if (a.toy < a.y) {
-                              a.y = text.y - this.tolerance;
-                           } else a.y = text.y + text.height + this.tolerance;
+                           if (a.curvePoints[length].y < a.curvePoints[0].y) {
+                              a.curvePoints[0].y = text.y - this.tolerance;
+                           } else
+                              a.curvePoints[0].y =
+                                 text.y + text.height + this.tolerance;
 
-                           a.x = text.x + (text.width + text.x - text.x) * 0.5;
+                           a.curvePoints[0].x =
+                              text.x + (text.width + text.x - text.x) * 0.5;
                         }
                      });
                   }
                });
             }
 
-            if (arrowEnd.length > 0) {
-               arrowEnd.forEach((ar) => {
+            if (lineEnd.length > 0) {
+               lineEnd.forEach((ar) => {
                   if (ar === text) {
                      arcs.forEach((a) => {
+                        const length = a.curvePoints.length - 1;
                         if (textMap.get(a.endTo) === text) {
-                           if (a.y < a.toy) {
-                              a.tox =
+                           if (a.curvePoints[0].y < a.curvePoints[length].y) {
+                              a.curvePoints[length].x =
                                  text.x + (text.width + text.x - text.x) * 0.5;
-                              a.toy = text.y - this.tolerance;
+                              a.curvePoints[length].y = text.y - this.tolerance;
                            } else {
-                              a.tox =
+                              a.curvePoints[length].x =
                                  text.x + (text.width + text.x - text.x) * 0.5;
-                              a.toy = text.y + text.height + this.tolerance;
+                              a.curvePoints[length].y =
+                                 text.y + text.height + this.tolerance;
                            }
                         }
                      });
@@ -1745,212 +1599,9 @@ export default class Shapes {
       canvas.removeEventListener("mousemove", this.mouseMove.bind(this));
       // const { x: mouseX, y: mouseY } = this.getTransformedMouseCoords(e);
 
-      const arrow = arrows.get(this.resizeElement?.key);
       const rect = rectMap.get(this.resizeElement?.key);
       const line = lineMap.get(this.resizeElement?.key);
 
-      if (arrow) {
-         if (this.resizeElement?.direction === "resizeEnd") {
-            if (arrow.endTo) {
-               const {
-                  rect: theRect,
-                  sphere: theArc,
-                  text,
-               } = this.getShape(arrow.startTo);
-
-               if (text && text.pointTo.length > 0) {
-                  if (
-                     arrow.tox < text.x ||
-                     arrow.tox > text.x + text.width ||
-                     arrow.toy < text.y ||
-                     arrow.toy > text.y + text.height
-                  ) {
-                     arrow.endTo = null;
-                     text.pointTo.filter((t) => t !== this.resizeElement?.key);
-                  }
-               }
-
-               // end to rect
-               if (theRect && theRect.pointTo.length > 0) {
-                  if (
-                     arrow.tox < theRect.x ||
-                     arrow.tox > theRect.x + theRect.width ||
-                     arrow.toy < theRect.y ||
-                     arrow.toy > theRect.y + theRect.width ||
-                     arrow.startTo === arrow.endTo
-                  ) {
-                     arrow.endTo = null;
-                     // theRect.pointTo = null;
-                     theRect.pointTo.filter(
-                        (p) => p !== this.resizeElement?.key
-                     );
-                  }
-               }
-
-               // end to arc
-
-               if (theArc && theArc.pointTo.length > 0) {
-                  const parameter = Math.sqrt(
-                     (arrow.tox - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
-                  );
-                  if (
-                     parameter > theArc.xRadius &&
-                     parameter > theArc.yRadius
-                  ) {
-                     arrow.endTo = null;
-                     // theRect.pointTo = null;
-                     theArc.pointTo.filter(
-                        (p) => p !== this.resizeElement?.key
-                     );
-                  }
-               }
-            }
-
-            // arrow end point to rect
-            rectMap.forEach((rect, rectKey) => {
-               if (
-                  arrow.tox >= rect.x - this.tolerance &&
-                  arrow.tox <= rect.x + rect.width + this.tolerance &&
-                  arrow.toy >= rect.y - this.tolerance &&
-                  arrow.toy <= rect.y + rect.height + this.tolerance
-               ) {
-                  if (rect.pointTo.length > 0) {
-                     rect.pointTo.forEach((r) => {
-                        if (r === this.resizeElement?.key) return;
-                        else {
-                           rect.pointTo.push(this.resizeElement?.key);
-                           arrow.endTo = rectKey;
-                        }
-                     });
-                  } else {
-                     rect.pointTo.push(this.resizeElement?.key);
-                     arrow.endTo = rectKey;
-                  }
-               }
-            });
-
-            // arrow end point to sphere
-            circleMap.forEach((arc, arckey) => {
-               const parameter = Math.sqrt(
-                  (arrow.tox - arc.x) ** 2 + (arrow.toy - arc.y) ** 2
-               );
-               if (parameter < arc.xRadius && parameter < arc.yRadius) {
-                  if (arc.pointTo.length > 0) {
-                     arc.pointTo.forEach((a) => {
-                        if (a === this.resizeElement?.key) return;
-                        else {
-                           arc.pointTo.push(this.resizeElement?.key);
-                           arrow.endTo = arckey;
-                        }
-                     });
-                  } else {
-                     arc.pointTo.push(this.resizeElement?.key);
-                     arrow.endTo = arckey;
-                  }
-               }
-            });
-
-            //point to text
-            textMap.forEach((t, textKey) => {
-               if (
-                  arrow.tox >= t.x &&
-                  arrow.tox <= t.x + t.width &&
-                  arrow.toy >= t.y &&
-                  arrow.toy <= t.y + t.height
-               ) {
-                  arrow.endTo = textKey;
-                  t.pointTo.push(this.resizeElement?.key);
-               }
-            });
-         } else if (this.resizeElement?.direction === "resizeStart") {
-            if (arrow.startTo) {
-               const {
-                  rect: theRect,
-                  sphere: theArc,
-                  text: theText,
-               } = this.getShape(arrow.startTo);
-
-               if (theRect && theRect.pointTo.length > 0) {
-                  if (
-                     arrow.x < theRect.x ||
-                     arrow.x > theRect.x + theRect.width ||
-                     arrow.y < theRect.y ||
-                     arrow.y > theRect.y + theRect.width
-                  ) {
-                     arrow.startTo = null;
-                     // theRect.pointTo = null;
-                     theRect.pointTo.filter(
-                        (p) => p !== this.resizeElement?.key
-                     );
-                  }
-               }
-
-               if (theArc && theArc.pointTo.length > 0) {
-                  const parameter = Math.sqrt(
-                     (arrow.x - theArc.x) ** 2 + (arrow.toy - theArc.y) ** 2
-                  );
-                  if (
-                     parameter > theArc.xRadius &&
-                     parameter > theArc.yRadius
-                  ) {
-                     arrow.startTo = null;
-                     theArc.pointTo.filter(
-                        (p) => p !== this.resizeElement?.key
-                     );
-                  }
-               }
-
-               if (theText && theText.pointTo.length > 0) {
-                  if (
-                     arrow.tox < theText.x ||
-                     arrow.tox > theText.x + theText.width ||
-                     arrow.toy < theText.y ||
-                     arrow.toy > theText.y + theText.height
-                  ) {
-                     arrow.startTo = null;
-                     theText.pointTo.filter(
-                        (t) => t !== this.resizeElement?.key
-                     );
-                  }
-               }
-            }
-
-            rectMap.forEach((rect, rectKey) => {
-               if (
-                  arrow.x >= rect.x - this.tolerance &&
-                  arrow.x <= rect.x + rect.width + this.tolerance &&
-                  arrow.y >= rect.y - this.tolerance &&
-                  arrow.y <= rect.y + rect.height + this.tolerance
-               ) {
-                  if (arrow.endTo === rectKey) return;
-                  rect.pointTo.push(this.resizeElement?.key);
-                  arrow.startTo = rectKey;
-               }
-            });
-            circleMap.forEach((arc, arcKey) => {
-               const parameter = Math.sqrt(
-                  (arrow.x - arc.x) ** 2 + (arrow.y - arc.y) ** 2
-               );
-               if (parameter < arc.xRadius && parameter < arc.yRadius) {
-                  if (arrow.endTo === arcKey) return;
-                  arrow.startTo = arcKey;
-                  arc.pointTo.push(this.resizeElement?.key);
-               }
-            });
-            textMap.forEach((text, textKey) => {
-               if (
-                  arrow.x >= text.x - this.tolerance &&
-                  arrow.x <= text.x + text.width + this.tolerance &&
-                  arrow.y >= text.y - this.tolerance &&
-                  arrow.y <= text.y + text.height + this.tolerance
-               ) {
-                  if (arrow.endTo === textKey) return;
-                  text.pointTo.push(this.resizeElement?.key);
-                  arrow.startTo = textKey;
-               }
-            });
-         }
-      }
       if (rect) {
          rect.isActive = true;
          this.draw();
@@ -1984,6 +1635,20 @@ export default class Shapes {
                      line.startTo = null;
                   }
                }
+
+               if (text && text.pointTo.length > 0) {
+                  if (
+                     line.curvePoints[0].x < text.x ||
+                     line.curvePoints[0].x > text.x + text.width ||
+                     line.curvePoints[0].y < text.y ||
+                     line.curvePoints[0].y > text.y + text.height
+                  ) {
+                     text.pointTo.filter((r) => {
+                        return r !== key;
+                     });
+                     line.startTo = null;
+                  }
+               }
             }
             rectMap.forEach((rect, rectKey) => {
                if (
@@ -2012,6 +1677,19 @@ export default class Shapes {
                   line.startTo = circleKey;
                }
             });
+
+            textMap.forEach((text, textKey) => {
+               if (
+                  line.curvePoints[0].x >= text.x &&
+                  line.curvePoints[0].x <= text.x + text.width &&
+                  line.curvePoints[0].y >= text.y &&
+                  line.curvePoints[0].y <= text.y + text.height
+               ) {
+                  if (textKey === line.endTo) return;
+                  text.pointTo.push(key);
+                  line.startTo = textKey;
+               }
+            });
          } else if (this.resizeElement.direction === "resizeEnd") {
             const length = line.curvePoints.length - 1;
 
@@ -2038,6 +1716,20 @@ export default class Shapes {
                   );
                   if (distance > sphere.xRadius || distance > sphere.yRadius) {
                      sphere.pointTo.filter((s) => s !== key);
+                     line.endTo = null;
+                  }
+               }
+
+               if (text && text.pointTo.length > 0) {
+                  if (
+                     line.curvePoints[length].x < text.x ||
+                     line.curvePoints[length].x > text.x + text.width ||
+                     line.curvePoints[length].y < text.y ||
+                     line.curvePoints[length].y > text.y + text.height
+                  ) {
+                     text.pointTo.filter((r) => {
+                        return r !== key;
+                     });
                      line.endTo = null;
                   }
                }
@@ -2070,6 +1762,18 @@ export default class Shapes {
                   line.endTo = circleKey;
                }
             });
+            textMap.forEach((text, textKey) => {
+               if (
+                  line.curvePoints[length].x >= text.x &&
+                  line.curvePoints[length].x <= text.x + text.width &&
+                  line.curvePoints[length].y >= text.y &&
+                  line.curvePoints[length].y <= text.y + text.height
+               ) {
+                  if (textKey === line.startTo) return;
+                  text.pointTo.push(key);
+                  line.endTo = textKey;
+               }
+            });
          }
          this.updateLineMinMax(this.resizeElement.key);
       }
@@ -2077,6 +1781,7 @@ export default class Shapes {
       const rectDrag = rectMap.get(this.dragElement);
       const arcDrag = circleMap.get(this.dragElement);
       const lineDrag = lineMap.get(this.dragElement);
+      const textDrag = textMap.get(this.dragElement);
 
       if (rectDrag) {
          this.updateGuides(
@@ -2106,6 +1811,12 @@ export default class Shapes {
          }
       } else if (lineDrag) {
          this.updateLineMinMax(this.dragElement);
+      } else if (textDrag) {
+         if (textDrag.pointTo.length > 0) {
+            textDrag.pointTo.forEach((l) => {
+               this.updateLineMinMax(l);
+            });
+         }
       }
 
       breakPointsCtx.clearRect(
@@ -2205,6 +1916,9 @@ export default class Shapes {
 
    updateLineMinMax(key) {
       let line = lineMap.get(key);
+      if (!line) {
+         return;
+      }
       line.minX = Infinity;
       line.maxX = -Infinity;
       line.minY = Infinity;
