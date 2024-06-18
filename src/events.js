@@ -300,7 +300,7 @@ canvas.addEventListener("dblclick", function (event) {
             canvas.getBoundingClientRect().top +
             scrollBar.scrollPositionY;
          const content = e.target.value.split("\n");
-         const newText = new Text(mouseX, mouseY, 15, content);
+         const newText = new Text(mouseX, mouseY, 15, content, "Monoscope");
          const key = Math.random() * 100;
          textMap.set(key, newText);
          newText.draw();
@@ -465,7 +465,7 @@ switchCanvas.addEventListener("click", () => {
 });
 
 switchDoc.addEventListener("click", () => {
-    config.docMode = "doc";
+   config.docMode = "doc";
    changeDoc();
 });
 

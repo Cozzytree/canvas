@@ -1,7 +1,6 @@
 import React from "react";
 import { config } from "../../config";
 import { shape } from "../../shape";
-import { Strikethrough } from "lucide-react";
 import { useLocalContext } from "../context/localcontext";
 
 const colors = [
@@ -15,9 +14,9 @@ const colors = [
 
 function ColorOptions() {
    const { currentActive, setCurrentActive } = useLocalContext();
+
    function handleColor(color) {
       if (config && config.currentActive) {
-         console.log(currentActive);
          if (currentActive.type === "line") {
             config.currentActive.borderColor = color;
          } else {
@@ -48,6 +47,20 @@ function ColorOptions() {
                >
                   <div className="absolute w-full h-[2px] border border-zinc-200 top-[50%] rotate-[46deg] left-0"></div>
                </div>
+               <label htmlFor="custom-color">
+                  <div
+                     className={`relative bg-gradient-to-r from-blue-500 via-green-500 to-purple-500 h-[25px] w-[25px] rounded-sm border border-zinc-200/40 cursor-pointer`}
+                  >
+                     <input
+                        id="custom-color"
+                        type="color"
+                        className="hidden"
+                        onChange={(e) => {
+                           handleColor(e.target.value);
+                        }}
+                     />
+                  </div>
+               </label>
             </div>
          </div>
       </>
