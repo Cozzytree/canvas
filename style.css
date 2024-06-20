@@ -3,57 +3,149 @@
 @tailwind utilities;
 
 * {
-   padding: 0;
-   box-sizing: border-box;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
     /* cursor: crosshair; */
 }
+h1.ce-header {
+    @apply text-3xl font-extrabold;
+}
+h2.ce-header {
+    @apply text-2xl font-bold;
+}
 
-@layer base {
-   :root {
-      --background: 0 0% 0%;
-      --foreground: 213 31% 91%;
+h3.ce-header {
+    @apply text-xl font-bold;
+}
 
-      --muted: 223 47% 11%;
-      --muted-foreground: 215.4 16.3% 56.9%;
+h5.ce-header {
+    @apply text-base font-bold;
+}
 
-      --accent: 216 34% 17%;
-      --accent-foreground: 210 40% 98%;
+h5.ce-header {
+    @apply text-base font-semibold;
+}
 
-      --popover: 224 71% 4%;
-      --popover-foreground: 215 20.2% 65.1%;
+h5.ce-header {
+    @apply text-base font-semibold;
+}
 
-      --border: 216 34% 17%;
-      --input: 216 34% 17%;
+.ce-block--selected .ce-block__content,
+.ce-inline-toolbar,
+.codex-editor--narrow .ce-toolbox,
+.ce-conversion-toolbar,
+.ce-settings,
+.ce-settings__button,
+.ce-toolbar__settings-btn,
+.cdx-button,
+.ce-popover,
+.ce-toolbar__plus:hover {
+    background: #cdcdcd;
+    color: inherit;
+}
 
-      --card: 224 71% 4%;
-      --card-foreground: 213 31% 91%;
+.ce-inline-tool,
+.ce-conversion-toolbar__label,
+.ce-toolbox__button,
+.cdx-settings-button,
+.ce-toolbar__plus {
+    color: inherit;
+}
 
-      --primary: 210 40% 98%;
-      --primary-foreground: 222.2 47.4% 1.2%;
+::selection {
+    background: #000;
+}
 
-      --secondary: 222.2 47.4% 11.2%;
-      --secondary-foreground: 210 40% 98%;
+.cdx-settings-button:hover,
+.ce-settings__button:hover,
+.ce-toolbox__button--active,
+.ce-toolbox__button:hover,
+.cdx-button:hover,
+.ce-inline-toolbar__dropdown:hover,
+.ce-inline-tool:hover,
+.ce-popover__item:hover,
+.ce-toolbar__settings-btn:hover {
+    background-color: #aaaaaa;
+    color: inherit;
+}
 
-      --destructive: 0 63% 31%;
-      --destructive-foreground: 210 40% 98%;
+.ce-paragraph {
+    background: transparent;
+    padding: 0px 12px;
+    border-radius: 4px;
+    border-bottom: 1px solid #2c2c2c;
+    @apply text-[20px];
+}
+.ce-header {
+    background: rgba(65, 65, 65, 0.223);
+    padding: 0 10px;
+}
 
-      --ring: 216 34% 17%;
+.cdx-notify--error {
+    background: #fb5d5d !important;
+}
 
-      --radius: 0.3rem;
-   }
+.cdx-notify__cross::after,
+.cdx-notify__cross::before {
+    background: white;
+}
+
+/* General hiding of scroll bars for specific elements */
+.hide-scrollbars-element {
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: 10px; /* Firefox */
+}
+
+.hide-scrollbars-element::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
 }
 
 @layer base {
-   * {
-      @apply border-border;
-   }
-   body {
-      @apply bg-background text-foreground;
-      font-feature-settings: "rlig" 1, "calt" 1;
-   }
+    :root {
+        --background: 0 0% 0%;
+        --foreground: 213 31% 91%;
+
+        --muted: 223 47% 11%;
+        --muted-foreground: 215.4 16.3% 56.9%;
+
+        --accent: 216 34% 17%;
+        --accent-foreground: 210 40% 98%;
+
+        --popover: 224 71% 4%;
+        --popover-foreground: 215 20.2% 65.1%;
+
+        --border: 216 34% 17%;
+        --input: 216 34% 17%;
+
+        --card: 224 71% 4%;
+        --card-foreground: 213 31% 91%;
+
+        --primary: 210 40% 98%;
+        --primary-foreground: 222.2 47.4% 1.2%;
+
+        --secondary: 222.2 47.4% 11.2%;
+        --secondary-foreground: 210 40% 98%;
+
+        --destructive: 0 63% 31%;
+        --destructive-foreground: 210 40% 98%;
+
+        --ring: 216 34% 17%;
+
+        --radius: 0.3rem;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
 }
 
 /* html {
@@ -61,64 +153,64 @@ body {
 } */
 
 #canvas {
-   position: relative;
-   background: transparent;
+    position: relative;
+    background: transparent;
 }
 
 .square {
-   position: relative;
-   width: 15px;
-   height: 15px;
-   border: 2px solid white;
-   border-radius: 2px;
+    position: relative;
+    width: 15px;
+    height: 15px;
+    border: 2px solid white;
+    border-radius: 2px;
 }
 
 .square::after {
-   content: "";
-   position: absolute;
-   width: 100%;
-   height: 100%;
-   top: 50%;
-   left: 50%;
-   border: 1.5px solid rgba(255, 255, 255, 0.604);
-   border-radius: 2px;
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.604);
+    border-radius: 2px;
 }
 
 .circle {
-   width: 15px;
-   height: 15px;
-   border-radius: 100%;
-   position: relative;
-   border: 2px solid white;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    position: relative;
+    border: 2px solid white;
 }
 
 .circle::after {
-   content: "";
-   position: absolute;
-   width: 12px;
-   height: 12px;
-   top: 60%;
-   left: 50%;
-   border: 1px solid rgba(255, 255, 255, 0.604);
-   border-radius: 100%;
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    top: 60%;
+    left: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.604);
+    border-radius: 100%;
 }
 
 .rect {
-   position: absolute;
-   border: 1px solid blue;
+    position: absolute;
+    border: 1px solid blue;
 }
 
 .rectShape {
-   border: 1px solid rgba(140, 140, 140, 0.493);
-   border-radius: 2px;
+    border: 1px solid rgba(140, 140, 140, 0.493);
+    border-radius: 2px;
 }
 
 .focusedRect {
-   border: 2px solid rgb(0, 136, 255);
-   border-radius: 0.3em;
+    border: 2px solid rgb(0, 136, 255);
+    border-radius: 0.3em;
 }
 
 .lineArrow {
-   position: absolute;
-   border: 2px solid white;
+    position: absolute;
+    border: 2px solid white;
 }

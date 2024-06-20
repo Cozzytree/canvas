@@ -1,17 +1,17 @@
 import ColorOptions from "./colorOptions";
 import ThicknessOptions from "./ThicknessOptions";
 import React from "react";
-import { config, fontsizes } from "../../config";
+import { config, fontsizes } from "../config.js";
 import {
    Menubar,
    MenubarContent,
    MenubarMenu,
    MenubarSeparator,
    MenubarTrigger,
-} from "./menuBar";
-import { useLocalContext } from "../context/localcontext";
-import { buttonVariants } from "./button";
-import { shape } from "../../shape";
+} from "../components/menuBar.jsx";
+import { useLocalContext } from "./context/localcontext.jsx";
+import { buttonVariants } from "../components/button.jsx";
+import { shape } from "../shape.js";
 
 function Options() {
    const { currentActive, setCurrentActive } = useLocalContext();

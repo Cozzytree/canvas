@@ -1,7 +1,7 @@
 import React from "react";
-import { config } from "../../config";
-import { shape } from "../../shape";
-import { useLocalContext } from "../context/localcontext";
+import { config } from "../config";
+import { shape } from "../shape";
+import { useLocalContext } from "./context/localcontext";
 
 const colors = [
    "#FF5733",

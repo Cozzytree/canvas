@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { config, colors } from "../../config";
-import { MenubarSub, MenubarSubContent, MenubarSubTrigger } from "./menuBar";
-import { shape } from "../../shape";
-import { useLocalContext } from "../context/localcontext";
+import { config, colors } from "../config.js";
+import { MenubarSub, MenubarSubContent, MenubarSubTrigger } from "../components/menuBar.jsx";
+import { shape } from "../shape.js";
+import { useLocalContext } from "./context/localcontext";
 
 const thickness = [
    { size: "S", q: 1 },

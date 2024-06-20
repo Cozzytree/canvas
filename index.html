@@ -65,15 +65,10 @@
             id="canvas-container"
             class="sm:grid sm:grid-cols-[0.5fr_1fr] sm:divide-x"
          >
-            <div id="document" class="flex flex-col justify-start px-6 pt-16">
-               <h1 class="text-2xl text-start">Canvas</h1>
-               <p>
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit
-                  eum quod architecto alias atque doloribus perspiciatis
-                  consequuntur, laudantium animi! Nulla repellendus cum ad quis
-                  laudantium vel laborum explicabo facere consequuntur.
-               </p>
-            </div>
+            <div
+               id="document"
+               class="w-full mx-auto h-[100dvh] flex flex-col justify-start pt-16"
+            ></div>
 
             <div
                id="canvas-div"
@@ -174,7 +169,7 @@
                ></canvas>
                <!-- scroll y -->
                <div
-                  class=" absolute right-0 top-0 w-[10px] h-full"
+                  class="absolute right-0 top-0 w-[10px] h-full"
                   id="scroll-bar"
                >
                   <div
@@ -187,8 +182,7 @@
                <div
                   id="options-container"
                   class="absolute hidden left-[50%] translate-x-[-50%] bottom-5 z-[999] w-fit"
-               >
-               </div>
+               ></div>
 
                <!-- scroll x -->
                <div
@@ -204,6 +198,7 @@
          </main>
       </div>
       <script type="module" src="src/main.js"></script>
-      <script type="module" src="src/shapeOptions//index.jsx"></script>
+      <script type="module" src="src/shapeOptions/index.jsx"></script>
+      <script type="module" src="src/documentSection/index.jsx"></script>
    </body>
 </html>
